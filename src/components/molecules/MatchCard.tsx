@@ -27,6 +27,7 @@ interface MatchCardProps {
   isAdmin?: boolean;
   onEdit?: (match: Match) => void;
   onDelete?: (id: number) => void;
+  onClick?: () => void;
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({
@@ -34,6 +35,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   isAdmin = false,
   onEdit,
   onDelete,
+  onClick,
 }) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -91,7 +93,12 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   };
 
   return (
-    <div className="relative overflow-hidden bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-4 shadow-xl hover:border-zinc-700/60 transition-all duration-300">
+    <div
+      onClick={onClick}
+      className={`relative overflow-hidden bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-4 shadow-xl hover:border-zinc-700/60 transition-all duration-300 ${
+        onClick ? "cursor-pointer hover:border-emerald-500/40 hover:bg-zinc-900/80 active:scale-[0.99]" : ""
+      }`}
+    >
       {/* Accent Top Border for Live Matches */}
       {match.status === "ongoing" && (
         <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500 animate-pulse" />
@@ -165,13 +172,19 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       {isAdmin && (
         <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center justify-end gap-2">
           <button
-            onClick={() => onEdit && onEdit(match)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit && onEdit(match);
+            }}
             className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg cursor-pointer transition-colors"
           >
             Edit
           </button>
           <button
-            onClick={() => onDelete && onDelete(match.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete && onDelete(match.id);
+            }}
             className="px-3 py-1 bg-rose-900/40 hover:bg-rose-900/65 text-rose-300 text-xs font-medium rounded-lg cursor-pointer border border-rose-900/45 transition-colors"
           >
             Hapus

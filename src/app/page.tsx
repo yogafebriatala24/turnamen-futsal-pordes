@@ -227,7 +227,7 @@ export default function Home() {
           )}
 
           {activeTab === "schedule" && (
-            <ScheduleList matches={matches} loading={loading} />
+            <ScheduleList matches={matches} players={players} loading={loading} />
           )}
 
           {activeTab === "topscore" && (

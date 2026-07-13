@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { Match, MatchCard } from "../molecules/MatchCard";
 import { Select } from "../atoms/Select";
-import { Calendar, Filter } from "lucide-react";
+import { Calendar, Filter, Users, X, Clock, Shield } from "lucide-react";
+import { Player } from "../../services/db";
 
 interface ScheduleListProps {
   matches: Match[];
+  players?: Player[];
   loading?: boolean;
   isAdmin?: boolean;
   onEdit?: (match: Match) => void;
@@ -13,6 +15,7 @@ interface ScheduleListProps {
 
 export const ScheduleList: React.FC<ScheduleListProps> = ({
   matches,
+  players = [],
   loading = false,
   isAdmin = false,
   onEdit,
@@ -20,6 +23,26 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
 }) => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roundFilter, setRoundFilter] = useState<string>("all");
+  const [selectedMatchForDetail, setSelectedMatchForDetail] = useState<Match | null>(null);
+
+  const formatDate = (dateString: string) => {
+    const d = new Date(dateString);
+    return d.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
 
   const rounds = useMemo(() => {
     const list = Array.from(new Set(matches.map((m) => m.round)));
@@ -166,8 +189,174 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
               isAdmin={isAdmin}
               onEdit={onEdit}
               onDelete={onDelete}
+              onClick={() => setSelectedMatchForDetail(match)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Match Details Modal Pop-up */}
+      {selectedMatchForDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl w-full max-w-lg p-5 shadow-2xl relative max-h-[90vh] overflow-y-auto flex flex-col gap-5 animate-in zoom-in-95 duration-200">
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedMatchForDetail(null)}
+              className="absolute top-4 right-4 text-zinc-550 hover:text-zinc-200 cursor-pointer p-1 hover:bg-zinc-900 rounded-lg transition-colors animate-pulse"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Title Header */}
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                {selectedMatchForDetail.group_name}
+              </span>
+              <h3 className="text-xs font-semibold text-zinc-550 uppercase tracking-widest mt-1">
+                {selectedMatchForDetail.round}
+              </h3>
+            </div>
+
+            {/* Main Scoreboard VS */}
+            <div className="grid grid-cols-7 items-center bg-zinc-900/40 p-4 border border-zinc-900 rounded-2xl">
+              {/* Home Team */}
+              <div className="col-span-3 flex flex-col items-center text-center gap-1.5 min-w-0">
+                {selectedMatchForDetail.teams_home.logo_url ? (
+                  <img
+                    src={selectedMatchForDetail.teams_home.logo_url}
+                    alt={selectedMatchForDetail.teams_home.name}
+                    className="w-12 h-12 object-contain rounded-full bg-zinc-800 p-1"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-zinc-850 border border-zinc-750 flex items-center justify-center font-bold text-emerald-405 text-sm tracking-wider flex-shrink-0">
+                    {selectedMatchForDetail.teams_home.name
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()}
+                  </div>
+                )}
+                <span className="text-xs font-bold text-zinc-200 truncate max-w-full">
+                  {selectedMatchForDetail.teams_home.name}
+                </span>
+              </div>
+
+              {/* VS / Score */}
+              <div className="col-span-1 flex flex-col items-center justify-center">
+                {selectedMatchForDetail.status !== "scheduled" ? (
+                  <div className="flex items-center justify-center gap-1 bg-black/40 px-3 py-1.5 rounded-xl border border-zinc-800/80">
+                    <span className="text-base font-black text-rose-455">
+                      {selectedMatchForDetail.home_score}
+                    </span>
+                    <span className="text-xs text-zinc-650 font-bold">:</span>
+                    <span className="text-base font-black text-rose-455">
+                      {selectedMatchForDetail.away_score}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-[10px] font-black tracking-widest text-zinc-550 bg-zinc-850 px-2 py-0.5 rounded uppercase">
+                    VS
+                  </span>
+                )}
+              </div>
+
+              {/* Away Team */}
+              <div className="col-span-3 flex flex-col items-center text-center gap-1.5 min-w-0">
+                {selectedMatchForDetail.teams_away.logo_url ? (
+                  <img
+                    src={selectedMatchForDetail.teams_away.logo_url}
+                    alt={selectedMatchForDetail.teams_away.name}
+                    className="w-12 h-12 object-contain rounded-full bg-zinc-800 p-1"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-zinc-850 border border-zinc-750 flex items-center justify-center font-bold text-emerald-450 text-sm tracking-wider flex-shrink-0">
+                    {selectedMatchForDetail.teams_away.name
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()}
+                  </div>
+                )}
+                <span className="text-xs font-bold text-zinc-200 truncate max-w-full">
+                  {selectedMatchForDetail.teams_away.name}
+                </span>
+              </div>
+            </div>
+
+            {/* Time and Date Info */}
+            <div className="flex justify-around bg-zinc-900/20 border border-zinc-900 p-3 rounded-xl text-xs text-zinc-400">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                <span>{formatDate(selectedMatchForDetail.match_date)}</span>
+              </div>
+              <div className="flex items-center gap-1.5 border-l border-zinc-800 pl-4">
+                <Clock className="w-3.5 h-3.5 text-emerald-500" />
+                <span>{formatTime(selectedMatchForDetail.match_date)} WIB</span>
+              </div>
+            </div>
+
+            {/* Team Squads Section */}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-555 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-emerald-500" />
+                Skuad & Daftar Pemain
+              </h4>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Team 1 Players */}
+                <div className="bg-zinc-900/30 p-3 border border-zinc-900 rounded-2xl space-y-2">
+                  <h5 className="text-[10px] font-extrabold text-zinc-350 border-b border-zinc-850 pb-1.5 uppercase truncate">
+                    {selectedMatchForDetail.teams_home.name}
+                  </h5>
+                  {players.filter((p) => p.team_id === selectedMatchForDetail.home_team_id).length === 0 ? (
+                    <p className="text-[10px] text-zinc-650 italic">Belum ada pemain.</p>
+                  ) : (
+                    <ul className="space-y-1 max-h-40 overflow-y-auto pr-1 divide-y divide-zinc-900/40">
+                      {players
+                        .filter((p) => p.team_id === selectedMatchForDetail.home_team_id)
+                        .map((player) => (
+                          <li key={player.id} className="text-xs text-zinc-300 flex items-center justify-between py-1">
+                            <span className="truncate max-w-[110px] font-medium text-zinc-200">{player.name}</span>
+                            {player.goals > 0 && (
+                              <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                                {player.goals} Gol
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Team 2 Players */}
+                <div className="bg-zinc-900/30 p-3 border border-zinc-900 rounded-2xl space-y-2">
+                  <h5 className="text-[10px] font-extrabold text-zinc-350 border-b border-zinc-850 pb-1.5 uppercase truncate">
+                    {selectedMatchForDetail.teams_away.name}
+                  </h5>
+                  {players.filter((p) => p.team_id === selectedMatchForDetail.away_team_id).length === 0 ? (
+                    <p className="text-[10px] text-zinc-650 italic">Belum ada pemain.</p>
+                  ) : (
+                    <ul className="space-y-1 max-h-40 overflow-y-auto pr-1 divide-y divide-zinc-900/40">
+                      {players
+                        .filter((p) => p.team_id === selectedMatchForDetail.away_team_id)
+                        .map((player) => (
+                          <li key={player.id} className="text-xs text-zinc-300 flex items-center justify-between py-1">
+                            <span className="truncate max-w-[110px] font-medium text-zinc-200">{player.name}</span>
+                            {player.goals > 0 && (
+                              <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                                {player.goals} Gol
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

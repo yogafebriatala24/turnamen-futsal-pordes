@@ -47,7 +47,8 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
           (homeTeamId && player.team_id === Number(homeTeamId)) ||
           (awayTeamId && player.team_id === Number(awayTeamId))
         ) {
-          newGoals[player.id] = player.goals;
+          // Initialize to 0 goals scored in this match instead of their historical total
+          newGoals[player.id] = 0;
         }
       });
       setPlayerGoals(newGoals);
@@ -138,12 +139,13 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         await createMatch(payload);
       }
 
-      // Save player goals updates concurrently
-      const goalUpdates = Object.entries(playerGoals).map(async ([pIdStr, goalsVal]) => {
+      // Save player goals updates by adding the goals scored in this match to the player's total goals
+      const goalUpdates = Object.entries(playerGoals).map(async ([pIdStr, addedGoals]) => {
         const playerId = Number(pIdStr);
         const originalPlayer = players.find((p) => p.id === playerId);
-        if (originalPlayer && originalPlayer.goals !== goalsVal) {
-          await updatePlayer(playerId, { goals: goalsVal });
+        if (originalPlayer && addedGoals > 0) {
+          const newGoalsTotal = originalPlayer.goals + addedGoals;
+          await updatePlayer(playerId, { goals: newGoalsTotal });
         }
       });
       await Promise.all(goalUpdates);
