@@ -101,6 +101,21 @@ export async function createPlayer(player: Omit<Player, "id" | "teams">): Promis
   return data;
 }
 
+export async function createPlayersBulk(
+  players: Omit<Player, "id" | "teams">[]
+): Promise<Player[]> {
+  const { data, error } = await supabase
+    .from("players")
+    .insert(players)
+    .select();
+
+  if (error) {
+    console.error("Error creating players in bulk:", error);
+    throw error;
+  }
+  return data || [];
+}
+
 export async function updatePlayer(
   id: number,
   player: Partial<Omit<Player, "id" | "teams">>

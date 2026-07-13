@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Player, createPlayer, updatePlayer, deletePlayer } from "../../services/db";
+import { Player, createPlayer, createPlayersBulk, updatePlayer, deletePlayer } from "../../services/db";
 import { Team } from "../../utils/standings";
 import { Button } from "../atoms/Button";
 import { Input } from "../atoms/Input";
@@ -24,12 +24,14 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
 
   // Form states
   const [name, setName] = useState("");
+  const [namesInput, setNamesInput] = useState("");
   const [teamId, setTeamId] = useState<string>("");
   const [goals, setGoals] = useState<number>(0);
   const [error, setError] = useState("");
 
   const resetForm = () => {
     setName("");
+    setNamesInput("");
     setTeamId("");
     setGoals(0);
     setEditingPlayer(null);
@@ -47,10 +49,6 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setError("Nama pemain harus diisi");
-      return;
-    }
     if (!teamId) {
       setError("Tim harus dipilih");
       return;
@@ -60,16 +58,42 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
     setError("");
 
     try {
-      const payload = {
-        name: name.trim(),
-        team_id: Number(teamId),
-        goals: Number(goals),
-      };
-
       if (editingPlayer) {
+        if (!name.trim()) {
+          setError("Nama pemain harus diisi");
+          setIsLoading(false);
+          return;
+        }
+        const payload = {
+          name: name.trim(),
+          team_id: Number(teamId),
+          goals: Number(goals),
+        };
         await updatePlayer(editingPlayer.id, payload);
       } else {
-        await createPlayer(payload);
+        if (!namesInput.trim()) {
+          setError("Nama-nama pemain harus diisi");
+          setIsLoading(false);
+          return;
+        }
+        const rawNames = namesInput.split(/[,\n;]+/);
+        const playerNames = rawNames
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+
+        if (playerNames.length === 0) {
+          setError("Nama-nama pemain tidak valid");
+          setIsLoading(false);
+          return;
+        }
+
+        const payloads = playerNames.map((pName) => ({
+          name: pName,
+          team_id: Number(teamId),
+          goals: Number(goals),
+        }));
+
+        await createPlayersBulk(payloads);
       }
       resetForm();
       onRefresh();
@@ -141,32 +165,67 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField label="Nama Pemain" required className="md:col-span-1">
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Andi Wijaya"
-                  autoFocus
-                />
-              </FormField>
+              {editingPlayer ? (
+                <>
+                  <FormField label="Nama Pemain" required className="md:col-span-1">
+                    <Input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Contoh: Andi Wijaya"
+                      autoFocus
+                    />
+                  </FormField>
 
-              <FormField label="Asal Tim" required className="md:col-span-1">
-                <Select
-                  value={teamId}
-                  onChange={(e) => setTeamId(e.target.value)}
-                  options={teamOptions}
-                  placeholder="-- Pilih Tim --"
-                />
-              </FormField>
+                  <FormField label="Asal Tim" required className="md:col-span-1">
+                    <Select
+                      value={teamId}
+                      onChange={(e) => setTeamId(e.target.value)}
+                      options={teamOptions}
+                      placeholder="-- Pilih Tim --"
+                    />
+                  </FormField>
 
-              <FormField label="Jumlah Gol" required className="md:col-span-1">
-                <Input
-                  type="number"
-                  min="0"
-                  value={goals}
-                  onChange={(e) => setGoals(Number(e.target.value))}
-                />
-              </FormField>
+                  <FormField label="Jumlah Gol" required className="md:col-span-1">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={goals}
+                      onChange={(e) => setGoals(Number(e.target.value))}
+                    />
+                  </FormField>
+                </>
+              ) : (
+                <>
+                  <FormField label="Nama-nama Pemain (Pisahkan dengan koma atau baris baru)" required className="md:col-span-3">
+                    <textarea
+                      value={namesInput}
+                      onChange={(e) => setNamesInput(e.target.value)}
+                      placeholder="Contoh:&#10;Andi Wijaya&#10;Budi Santoso, Candra Kirana&#10;Dedi Kurniawan"
+                      rows={4}
+                      className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl text-zinc-100 placeholder-zinc-500 text-sm transition-all duration-200 outline-none focus:ring-4"
+                      autoFocus
+                    />
+                  </FormField>
+
+                  <FormField label="Asal Tim" required className="md:col-span-2">
+                    <Select
+                      value={teamId}
+                      onChange={(e) => setTeamId(e.target.value)}
+                      options={teamOptions}
+                      placeholder="-- Pilih Tim untuk Pemain-Pemain Ini --"
+                    />
+                  </FormField>
+
+                  <FormField label="Jumlah Gol Awal" required className="md:col-span-1">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={goals}
+                      onChange={(e) => setGoals(Number(e.target.value))}
+                    />
+                  </FormField>
+                </>
+              )}
             </div>
 
             <div className="flex justify-end gap-2.5 pt-2">
