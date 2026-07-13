@@ -11,6 +11,11 @@ export const TopScoreList: React.FC<TopScoreListProps> = ({
   players,
   loading = false,
 }) => {
+  // Filter players with goals > 0 and limit to top 5
+  const displayPlayers = React.useMemo(() => {
+    return players.filter((p) => p.goals > 0).slice(0, 5);
+  }, [players]);
+
   if (loading) {
     return (
       <div className="space-y-3 animate-pulse">
@@ -33,11 +38,11 @@ export const TopScoreList: React.FC<TopScoreListProps> = ({
     );
   }
 
-  if (players.length === 0) {
+  if (displayPlayers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-zinc-500 bg-zinc-900/30 rounded-2xl border border-zinc-850">
         <Trophy className="w-10 h-10 mb-2 text-zinc-650" />
-        <span className="text-sm">Belum ada data pencetak gol.</span>
+        <span className="text-sm">Belum ada data pencetak gol (minimal 1 gol).</span>
       </div>
     );
   }
@@ -74,7 +79,7 @@ export const TopScoreList: React.FC<TopScoreListProps> = ({
 
   return (
     <div className="flex flex-col gap-3">
-      {players.map((player, index) => {
+      {displayPlayers.map((player, index) => {
         const rank = index + 1;
         const isTopThree = rank <= 3;
 

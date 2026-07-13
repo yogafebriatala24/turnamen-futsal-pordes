@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Player } from "../../services/db";
 import { Team } from "../../utils/standings";
+import { Select } from "../atoms/Select";
 import { Users, Shield } from "lucide-react";
 
 interface PlayerListProps {
@@ -142,18 +143,17 @@ export const PlayerList: React.FC<PlayerListProps> = ({
           <span className="text-sm font-bold text-zinc-350">Daftar Pemain Berdasarkan Tim</span>
         </div>
 
-        <select
-          value={selectedTeamId}
-          onChange={(e) => setSelectedTeamId(e.target.value)}
-          className="w-full sm:w-60 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:border-emerald-500 focus:outline-none cursor-pointer"
-        >
-          <option value="all">Semua Tim</option>
-          {teams.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+        <div className="w-full sm:w-60">
+          <Select
+            value={selectedTeamId}
+            onChange={(e) => setSelectedTeamId(e.target.value)}
+            options={[
+              { value: "all", label: "Semua Tim" },
+              ...teams.map((t) => ({ value: String(t.id), label: t.name })),
+            ]}
+            placeholder="Pilih Tim"
+          />
+        </div>
       </div>
 
       {/* Players List Grid */}
