@@ -9,10 +9,12 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans relative selection:bg-emerald-500/30 selection:text-emerald-300">
-      {/* Decorative Blur Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/5 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans relative selection:bg-emerald-500/30 selection:text-emerald-300 overflow-x-hidden">
+      {/* Decorative Blur Orbs Wrapper */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/5 rounded-full blur-[120px]" />
+      </div>
 
       {/* Main Premium Navbar */}
       <header className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-900">
@@ -52,18 +54,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </section>
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-5xl mx-auto w-full px-4 py-8 relative z-10">
+      <main className="flex-grow max-w-5xl mx-auto w-full px-4 py-4 sm:py-8 relative z-10">
         {children}
       </main>
 
       {/* Sticky Footer */}
-      <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600 bg-zinc-950/60 mt-12">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-medium">
+      <footer className="border-t border-zinc-900 py-3 sm:py-4 text-center text-xs text-zinc-650 bg-zinc-950/60 mt-4 sm:mt-8">
+        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-4 text-[10px] sm:text-xs">
+          <p className="font-medium text-zinc-550">
             © {new Date().getFullYear()} Karang Taruna RW 03. All rights
             reserved.
           </p>
-          <p className="text-zinc-700 font-semibold uppercase tracking-wider text-[10px]">
+          <p className="text-zinc-700 font-semibold uppercase tracking-wider text-[8px] sm:text-[9px] flex-shrink-0">
             Created by &copy;{"Yoga Febriatala"}
           </p>
         </div>

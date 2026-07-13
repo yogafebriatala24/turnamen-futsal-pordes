@@ -58,21 +58,25 @@ export default function Home() {
     {
       id: "standings",
       label: "Klasemen",
+      mobileLabel: "Klasemen",
       icon: Trophy,
     },
     {
       id: "schedule",
       label: "Jadwal & Hasil",
+      mobileLabel: "Jadwal",
       icon: Calendar,
     },
     {
       id: "topscore",
       label: "Top Score",
+      mobileLabel: "Skor",
       icon: Award,
     },
     {
       id: "players",
       label: "Daftar Pemain",
+      mobileLabel: "Pemain",
       icon: Users,
     },
   ] as const;
@@ -81,8 +85,8 @@ export default function Home() {
     <MainLayout>
       <div className="space-y-6">
         {/* Tab Buttons bar */}
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-1">
-          <div className="flex gap-1 sm:gap-2">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 w-full max-w-full overflow-hidden">
+          <div className="flex flex-row flex-nowrap overflow-x-auto whitespace-nowrap gap-1.5 sm:gap-3 flex-grow pr-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -90,16 +94,16 @@ export default function Home() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-4 py-3 text-xs sm:text-sm font-bold tracking-wide uppercase border-b-2 transition-all cursor-pointer ${
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold tracking-wide uppercase border-b-2 transition-all cursor-pointer ${
                     isActive
                       ? "border-emerald-500 text-emerald-450"
                       : "border-transparent text-zinc-500 hover:text-zinc-300"
                   }`}
                 >
                   <Icon
-                    className={`w-4 h-4 ${isActive ? "text-emerald-500" : "text-zinc-600"}`}
+                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? "text-emerald-500" : "text-zinc-650"}`}
                   />
-                  {tab.label}
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
@@ -109,11 +113,11 @@ export default function Home() {
           <button
             onClick={handleRefresh}
             disabled={loading || refreshing}
-            className="p-2 hover:bg-zinc-900 rounded-xl border border-zinc-900 hover:border-zinc-800 transition-colors text-zinc-500 hover:text-zinc-200 cursor-pointer disabled:opacity-50"
+            className="flex-shrink-0 p-1.5 sm:p-2 hover:bg-zinc-900 rounded-xl border border-zinc-900 hover:border-zinc-800 transition-colors text-zinc-500 hover:text-zinc-200 cursor-pointer disabled:opacity-50 ml-2"
             title="Muat ulang data"
           >
             <RefreshCw
-              className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-500" : ""}`}
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? "animate-spin text-emerald-500" : ""}`}
             />
           </button>
         </div>

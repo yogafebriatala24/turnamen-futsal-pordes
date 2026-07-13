@@ -45,7 +45,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
         <img
           src={url}
           alt={name}
-          className="w-6 h-6 object-contain rounded-full bg-zinc-850 p-0.5"
+          className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-full bg-zinc-850 p-0.5"
         />
       );
     }
@@ -57,7 +57,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
       .toUpperCase();
 
     return (
-      <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-[9px] text-emerald-400">
+      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-[8px] sm:text-[9px] text-emerald-400 flex-shrink-0">
         {initials}
       </div>
     );
@@ -88,16 +88,16 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-zinc-800/60 text-[10px] font-bold text-zinc-500 uppercase tracking-wider bg-zinc-950/20">
-                    <th className="py-3 px-4 w-12 min-w-[48px] max-w-[48px] text-center sticky left-0 z-20 bg-zinc-900">POS</th>
-                    <th className="py-3 px-4 min-w-[150px] sticky left-[48px] z-20 bg-zinc-900 border-r border-zinc-800/80">TIM</th>
-                    <th className="py-3 px-3 text-center w-12">MAIN</th>
-                    <th className="py-3 px-2 text-center w-10">M</th>
-                    <th className="py-3 px-2 text-center w-10">S</th>
-                    <th className="py-3 px-2 text-center w-10">K</th>
-                    <th className="py-3 px-2 text-center w-10">GM</th>
-                    <th className="py-3 px-2 text-center w-10">GK</th>
-                    <th className="py-3 px-3 text-center w-14">SG</th>
-                    <th className="py-3 px-4 text-center w-16 sticky right-0 z-20 bg-zinc-900 border-l border-zinc-800/80">POIN</th>
+                    <th className="py-2.5 px-2 sm:py-3 sm:px-4 w-9 sm:w-12 min-w-[36px] sm:min-w-[48px] max-w-[36px] sm:max-w-[48px] text-center sticky left-0 z-20 bg-zinc-900 text-[9px] sm:text-[10px]">POS</th>
+                    <th className="py-2.5 px-2 sm:py-3 sm:px-4 min-w-[110px] sm:min-w-[150px] sticky left-[36px] sm:left-[48px] z-20 bg-zinc-900 border-r border-zinc-800/80 text-[9px] sm:text-[10px]">TIM</th>
+                    <th className="py-2.5 px-1 sm:py-3 sm:px-3 text-center w-10 sm:w-12 text-[9px] sm:text-[10px]">MAIN</th>
+                    <th className="py-2.5 px-1 sm:py-3 sm:px-2 text-center w-8 sm:w-10 text-[9px] sm:text-[10px]">M</th>
+                    <th className="py-2.5 px-1 sm:py-3 sm:px-2 text-center w-8 sm:w-10 text-[9px] sm:text-[10px]">S</th>
+                    <th className="py-2.5 px-1 sm:py-3 sm:px-2 text-center w-8 sm:w-10 text-[9px] sm:text-[10px]">K</th>
+                    <th className="py-2.5 px-1 sm:py-3 sm:px-2 text-center w-8 sm:w-10 text-[9px] sm:text-[10px]">GM</th>
+                    <th className="py-2.5 px-1 sm:py-3 sm:px-2 text-center w-8 sm:w-10 text-[9px] sm:text-[10px]">GK</th>
+                    <th className="py-2.5 px-1 sm:py-3 sm:px-3 text-center w-10 sm:w-14 text-[9px] sm:text-[10px]">SG</th>
+                    <th className="py-2.5 px-2 sm:py-3 sm:px-4 text-center w-12 sm:w-16 sticky right-0 z-20 bg-zinc-900 border-l border-zinc-800/80 text-[9px] sm:text-[10px]">POIN</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-850/40 text-sm text-zinc-300">
@@ -119,7 +119,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                             : "bg-zinc-900 text-zinc-500"
                         }`}>
                           <span
-                            className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-xs ${
+                            className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-md text-[10px] sm:text-xs ${
                               isTopTwo
                                 ? "bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
                                 : "text-zinc-550"
@@ -130,50 +130,50 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                         </td>
 
                         {/* Team Name */}
-                        <td className={`py-3.5 px-4 font-semibold sticky left-[48px] z-10 border-r border-zinc-800/60 ${
+                        <td className={`py-2 px-2 sm:py-3.5 sm:px-4 font-semibold sticky left-[36px] sm:left-[48px] z-10 border-r border-zinc-800/60 text-xs sm:text-sm ${
                           isTopTwo 
                             ? "bg-[#0c2417] text-emerald-300" 
                             : "bg-zinc-900 text-zinc-200"
                         }`}>
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-1.5 sm:gap-2.5">
                             {renderEmblem(row.name, row.logoUrl)}
-                            <span className="truncate max-w-[160px]">{row.name}</span>
+                            <span className="truncate max-w-[100px] sm:max-w-[160px]">{row.name}</span>
                           </div>
                         </td>
 
                         {/* Played */}
-                        <td className="py-3.5 px-3 text-center font-medium text-zinc-300">
+                        <td className="py-2 px-1 sm:py-3.5 sm:px-3 text-center font-medium text-xs sm:text-sm text-zinc-300">
                           {row.played}
                         </td>
 
                         {/* Won */}
-                        <td className="py-3.5 px-2 text-center text-zinc-400">
+                        <td className="py-2 px-1 sm:py-3.5 sm:px-2 text-center text-xs sm:text-sm text-zinc-400">
                           {row.won}
                         </td>
 
                         {/* Drawn */}
-                        <td className="py-3.5 px-2 text-center text-zinc-400">
+                        <td className="py-2 px-1 sm:py-3.5 sm:px-2 text-center text-xs sm:text-sm text-zinc-400">
                           {row.drawn}
                         </td>
 
                         {/* Lost */}
-                        <td className="py-3.5 px-2 text-center text-zinc-400">
+                        <td className="py-2 px-1 sm:py-3.5 sm:px-2 text-center text-xs sm:text-sm text-zinc-400">
                           {row.lost}
                         </td>
 
                         {/* GM */}
-                        <td className="py-3.5 px-2 text-center text-zinc-500">
+                        <td className="py-2 px-1 sm:py-3.5 sm:px-2 text-center text-xs sm:text-sm text-zinc-500">
                           {row.goalsFor}
                         </td>
 
                         {/* GK */}
-                        <td className="py-3.5 px-2 text-center text-zinc-500">
+                        <td className="py-2 px-1 sm:py-3.5 sm:px-2 text-center text-xs sm:text-sm text-zinc-500">
                           {row.goalsAgainst}
                         </td>
 
                         {/* Goal Difference */}
                         <td
-                          className={`py-3.5 px-3 text-center font-semibold ${
+                          className={`py-2 px-1 sm:py-3.5 sm:px-3 text-center font-semibold text-xs sm:text-sm ${
                             row.goalDifference > 0
                               ? "text-emerald-500"
                               : row.goalDifference < 0
@@ -185,7 +185,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                         </td>
 
                         {/* Points */}
-                        <td className={`py-3.5 px-4 text-center font-extrabold text-sm sticky right-0 z-10 border-l border-zinc-800/60 ${
+                        <td className={`py-2 px-2 sm:py-3.5 sm:px-4 text-center font-extrabold text-xs sm:text-sm sticky right-0 z-10 border-l border-zinc-800/60 ${
                           isTopTwo 
                             ? "bg-[#0c2417] text-emerald-300" 
                             : "bg-zinc-900 text-white"
