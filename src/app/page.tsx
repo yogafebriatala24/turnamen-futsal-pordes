@@ -158,10 +158,7 @@ export default function Home() {
                   </span>
                 </div>
               ) : (
-                <div className="text-zinc-550 flex items-center gap-1.5 font-medium px-2.5 py-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-                  Tidak ada pertandingan LIVE saat ini.
-                </div>
+                <div />
               )}
 
               {/* Right side: Nearest Match info */}
