@@ -38,7 +38,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ongoing":
-        return <Badge variant="success">LIVE</Badge>;
+        return <Badge variant="danger">LIVE</Badge>;
       case "finished":
         return <Badge variant="info">SELESAI</Badge>;
       default:
@@ -94,7 +94,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
     <div className="relative overflow-hidden bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-4 shadow-xl hover:border-zinc-700/60 transition-all duration-300">
       {/* Accent Top Border for Live Matches */}
       {match.status === "ongoing" && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500 animate-pulse" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500 animate-pulse" />
       )}
 
       {/* Header Info */}

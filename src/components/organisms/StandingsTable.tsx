@@ -137,7 +137,12 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                         }`}>
                           <div className="flex items-center gap-1.5 sm:gap-2.5">
                             {renderEmblem(row.name, row.logoUrl)}
-                            <span className="truncate max-w-[100px] sm:max-w-[160px]">{row.name}</span>
+                            <span className="truncate max-w-[80px] sm:max-w-[160px]">{row.name}</span>
+                            {row.isLive && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black bg-rose-500/20 text-rose-450 border border-rose-500/30 animate-pulse ml-1 flex-shrink-0">
+                                LIVE
+                              </span>
+                            )}
                           </div>
                         </td>
 

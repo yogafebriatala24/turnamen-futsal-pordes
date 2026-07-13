@@ -20,6 +20,7 @@ export interface StandingRow {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
+  isLive?: boolean;
 }
 
 export function calculateStandings(teams: Team[], matches: Match[]): Record<string, StandingRow[]> {
@@ -40,23 +41,30 @@ export function calculateStandings(teams: Team[], matches: Match[]): Record<stri
       goalsAgainst: 0,
       goalDifference: 0,
       points: 0,
+      isLive: false,
     };
   });
 
-  // Calculate stats based on finished matches
+  // Calculate stats based on finished and ongoing matches
   matches.forEach((match) => {
-    if (match.status !== "finished") return;
+    if (match.status !== "finished" && match.status !== "ongoing") return;
 
-    const { home_team_id, away_team_id, home_score, away_score } = match;
-
-    // Check if score exists
-    if (home_score === null || away_score === null) return;
+    const { home_team_id, away_team_id, home_score, away_score, status } = match;
 
     const homeRow = standingsMap[home_team_id];
     const awayRow = standingsMap[away_team_id];
 
     // If teams are missing from team list, skip
     if (!homeRow || !awayRow) return;
+
+    // Toggle live state for the teams currently playing
+    if (status === "ongoing") {
+      homeRow.isLive = true;
+      awayRow.isLive = true;
+    }
+
+    // Check if score exists (can be null for scheduled, but ongoing should have scores)
+    if (home_score === null || away_score === null) return;
 
     homeRow.played += 1;
     awayRow.played += 1;
