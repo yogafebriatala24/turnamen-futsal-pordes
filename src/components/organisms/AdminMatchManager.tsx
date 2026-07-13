@@ -42,20 +42,23 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
   useEffect(() => {
     if (showForm) {
       const newGoals: Record<number, number> = {};
+      const savedGoals = editingMatch?.player_goals || {};
+      
       players.forEach((player) => {
         if (
           (homeTeamId && player.team_id === Number(homeTeamId)) ||
           (awayTeamId && player.team_id === Number(awayTeamId))
         ) {
-          // Initialize to 0 goals scored in this match instead of their historical total
-          newGoals[player.id] = 0;
+          // If editing, initialize from saved player_goals map, otherwise 0
+          const playerIdStr = String(player.id);
+          newGoals[player.id] = savedGoals[playerIdStr] !== undefined ? Number(savedGoals[playerIdStr]) : 0;
         }
       });
       setPlayerGoals(newGoals);
     } else {
       setPlayerGoals({});
     }
-  }, [homeTeamId, awayTeamId, showForm, players]);
+  }, [homeTeamId, awayTeamId, showForm, players, editingMatch]);
 
   const adjustGoal = (playerId: number, delta: number) => {
     setPlayerGoals((prev) => ({
@@ -122,6 +125,15 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
 
     try {
       const isScheduled = status === "scheduled";
+      
+      // Build the player_goals object mapping player ID string to goals scored
+      const matchPlayerGoals: Record<string, number> = {};
+      Object.entries(playerGoals).forEach(([pIdStr, val]) => {
+        if (val > 0) {
+          matchPlayerGoals[pIdStr] = val;
+        }
+      });
+
       const payload = {
         home_team_id: Number(homeTeamId),
         away_team_id: Number(awayTeamId),
@@ -131,6 +143,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         status,
         group_name: groupName,
         round,
+        player_goals: matchPlayerGoals,
       };
 
       if (editingMatch) {
@@ -139,13 +152,18 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         await createMatch(payload);
       }
 
-      // Save player goals updates by adding the goals scored in this match to the player's total goals
-      const goalUpdates = Object.entries(playerGoals).map(async ([pIdStr, addedGoals]) => {
+      // Update players' accumulated goals in the database based on the difference (newGoals - oldGoals)
+      const oldPlayerGoals = editingMatch?.player_goals || {};
+      const goalUpdates = Object.entries(playerGoals).map(async ([pIdStr, newGoals]) => {
         const playerId = Number(pIdStr);
         const originalPlayer = players.find((p) => p.id === playerId);
-        if (originalPlayer && addedGoals > 0) {
-          const newGoalsTotal = originalPlayer.goals + addedGoals;
-          await updatePlayer(playerId, { goals: newGoalsTotal });
+        if (originalPlayer) {
+          const oldGoals = oldPlayerGoals[pIdStr] !== undefined ? Number(oldPlayerGoals[pIdStr]) : 0;
+          const diff = newGoals - oldGoals;
+          if (diff !== 0) {
+            const newGoalsTotal = Math.max(0, originalPlayer.goals + diff);
+            await updatePlayer(playerId, { goals: newGoalsTotal });
+          }
         }
       });
       await Promise.all(goalUpdates);
@@ -165,6 +183,22 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
     }
 
     try {
+      const matchToDelete = matches.find((m) => m.id === id);
+      if (matchToDelete) {
+        const matchPlayerGoals = matchToDelete.player_goals || {};
+        
+        // Revert player goals concurrently by subtracting them from their accumulated totals
+        const revertGoals = Object.entries(matchPlayerGoals).map(async ([pIdStr, matchGoals]) => {
+          const playerId = Number(pIdStr);
+          const originalPlayer = players.find((p) => p.id === playerId);
+          if (originalPlayer && Number(matchGoals) > 0) {
+            const newGoalsTotal = Math.max(0, originalPlayer.goals - Number(matchGoals));
+            await updatePlayer(playerId, { goals: newGoalsTotal });
+          }
+        });
+        await Promise.all(revertGoals);
+      }
+
       await deleteMatch(id);
       onRefresh();
     } catch (err: any) {

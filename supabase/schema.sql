@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.matches (
     status TEXT DEFAULT 'scheduled' NOT NULL CHECK (status IN ('scheduled', 'ongoing', 'finished')),
     group_name TEXT DEFAULT 'Grup A' NOT NULL,
     round TEXT DEFAULT 'Penyisihan' NOT NULL CHECK (round IN ('Penyisihan', 'Perempat Final', 'Semi Final', 'Perebutan Juara 3', 'Final')),
+    player_goals JSONB DEFAULT '{}'::jsonb NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

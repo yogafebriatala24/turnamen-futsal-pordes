@@ -12,6 +12,7 @@ export interface Match {
   status: "scheduled" | "ongoing" | "finished";
   group_name: string;
   round: string;
+  player_goals?: Record<string, number>;
   teams_home: {
     name: string;
     logo_url?: string;
