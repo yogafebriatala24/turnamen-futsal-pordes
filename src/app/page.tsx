@@ -126,6 +126,65 @@ export default function Home() {
   return (
     <MainLayout>
       <div className="space-y-6">
+        {/* Quick Info Bar (Live & Upcoming Matches) */}
+        {(() => {
+          const liveMatches = matches.filter((m) => m.status === "ongoing");
+          const upcomingMatches = matches
+            .filter((m) => m.status === "scheduled")
+            .sort((a, b) => new Date(a.match_date).getTime() - new Date(b.match_date).getTime());
+          const nearestMatch = upcomingMatches[0];
+
+          if (liveMatches.length === 0 && !nearestMatch) return null;
+
+          const getTeamName = (id: number) => teams.find((t) => t.id === id)?.name || `Tim ${id}`;
+
+          return (
+            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between p-3 bg-zinc-900/30 border border-zinc-900 rounded-2xl text-[10px] sm:text-xs">
+              {/* Left side: Live Matches status */}
+              {liveMatches.length > 0 ? (
+                <div className="flex items-center gap-2 text-rose-400 font-bold bg-rose-500/5 px-2.5 py-1.5 rounded-xl border border-rose-500/10">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                  <span className="uppercase tracking-wider font-extrabold text-[9px]">LIVE:</span>
+                  <span className="text-zinc-250 truncate">
+                    {liveMatches
+                      .map(
+                        (m) =>
+                          `${getTeamName(m.home_team_id)} ${m.home_score ?? 0} - ${m.away_score ?? 0} ${getTeamName(m.away_team_id)}`
+                      )
+                      .join(" | ")}
+                  </span>
+                </div>
+              ) : (
+                <div className="text-zinc-550 flex items-center gap-1.5 font-medium px-2.5 py-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                  Tidak ada pertandingan LIVE saat ini.
+                </div>
+              )}
+
+              {/* Right side: Nearest Match info */}
+              {nearestMatch && (
+                <div className="flex items-center gap-2 text-emerald-400 font-semibold bg-emerald-500/5 px-2.5 py-1.5 rounded-xl border border-emerald-500/10 sm:self-center">
+                  <span className="uppercase tracking-wider font-extrabold text-[9px] text-emerald-500">Laga Terdekat:</span>
+                  <span className="text-zinc-300">
+                    {getTeamName(nearestMatch.home_team_id)} vs {getTeamName(nearestMatch.away_team_id)}
+                  </span>
+                  <span className="text-zinc-500 text-[9px] font-medium border-l border-zinc-800 pl-2">
+                    {new Date(nearestMatch.match_date).toLocaleDateString("id-ID", {
+                      weekday: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })} WIB
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Tab Buttons bar */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 w-full max-w-full overflow-hidden">
           <div className="flex flex-row flex-nowrap overflow-x-auto whitespace-nowrap gap-1.5 sm:gap-3 flex-grow pr-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
