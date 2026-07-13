@@ -15,6 +15,32 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<
     "standings" | "topscore" | "schedule" | "players"
   >("standings");
+
+  // Synchronize activeTab state with URL hash
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === "#jadwal") {
+        setActiveTab("schedule");
+      } else if (hash === "#topscore") {
+        setActiveTab("topscore");
+      } else if (hash === "#pemain") {
+        setActiveTab("players");
+      } else {
+        setActiveTab("standings");
+      }
+    };
+
+    // Run with a small delay to ensure Next.js router has completed hydration
+    const timer = setTimeout(handleHashChange, 100);
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
+
   const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -44,6 +70,19 @@ export default function Home() {
     fetchData();
   }, []);
 
+  const handleTabClick = (tabId: "standings" | "topscore" | "schedule" | "players") => {
+    if (tabId === "standings") {
+      // Clear hash cleanly
+      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      setActiveTab("standings");
+    } else {
+      const tab = tabs.find((t) => t.id === tabId);
+      if (tab && "hash" in tab) {
+        window.location.hash = tab.hash;
+      }
+    }
+  };
+
   const handleRefresh = () => {
     setRefreshing(true);
     fetchData();
@@ -65,18 +104,21 @@ export default function Home() {
       id: "schedule",
       label: "Jadwal & Hasil",
       mobileLabel: "Jadwal",
+      hash: "jadwal",
       icon: Calendar,
     },
     {
       id: "topscore",
       label: "Top Score",
       mobileLabel: "Skor",
+      hash: "topscore",
       icon: Award,
     },
     {
       id: "players",
       label: "Daftar Pemain",
       mobileLabel: "Pemain",
+      hash: "pemain",
       icon: Users,
     },
   ] as const;
@@ -93,7 +135,7 @@ export default function Home() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabClick(tab.id)}
                   className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold tracking-wide uppercase border-b-2 transition-all cursor-pointer ${
                     isActive
                       ? "border-emerald-500 text-emerald-450"

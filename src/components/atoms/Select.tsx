@@ -62,7 +62,7 @@ export const Select: React.FC<SelectProps> = ({
   };
 
   return (
-    <div className={`relative w-full ${className}`} ref={dropdownRef}>
+    <div className={`relative w-full ${isOpen ? "z-30" : "z-10"} ${className}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { StandingRow } from "../../utils/standings";
-import { Trophy } from "lucide-react";
+import { Trophy, Shield } from "lucide-react";
 
 interface StandingsTableProps {
   standings: Record<string, StandingRow[]>;
@@ -11,6 +11,36 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
   standings,
   loading = false,
 }) => {
+  const [highlightedRow, setHighlightedRow] = useState<string | null>(null);
+
+  const groups = useMemo(() => {
+    return Object.keys(standings).sort((a, b) => {
+      const getPriority = (name: string) => {
+        const lower = name.toLowerCase();
+        if (lower.includes("grup a")) return 1;
+        if (lower.includes("grup b")) return 2;
+        if (lower.includes("grup c")) return 3;
+        if (lower.includes("grup d")) return 4;
+        if (lower.includes("grup e")) return 5;
+        if (lower.includes("grup")) return 10;
+        if (lower.includes("penyisihan")) return 11;
+        if (lower.includes("perempat") || lower.includes("quarter")) return 20;
+        if (lower.includes("semi")) return 30;
+        if (lower.includes("perebutan") || lower.includes("juara 3") || lower.includes("ketiga")) return 40;
+        if (lower.includes("final")) return 50;
+        return 100;
+      };
+
+      const pA = getPriority(a);
+      const pB = getPriority(b);
+
+      if (pA !== pB) {
+        return pA - pB;
+      }
+      return a.localeCompare(b);
+    });
+  }, [standings]);
+
   if (loading) {
     return (
       <div className="flex flex-col gap-4 animate-pulse">
@@ -27,8 +57,6 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
       </div>
     );
   }
-
-  const groups = Object.keys(standings).sort();
 
   if (groups.length === 0) {
     return (

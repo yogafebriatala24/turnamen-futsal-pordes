@@ -19,6 +19,29 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<"teams" | "players" | "matches">("teams");
 
+  // Synchronize activeSubTab state with URL hash
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === "#tim") {
+        setActiveSubTab("teams");
+      } else if (hash === "#pemain") {
+        setActiveSubTab("players");
+      } else if (hash === "#pertandingan") {
+        setActiveSubTab("matches");
+      } else {
+        setActiveSubTab("teams");
+      }
+    };
+
+    const timer = setTimeout(handleHashChange, 100);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
+
   // Data states
   const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -83,9 +106,21 @@ export default function DashboardPage() {
 
   const subTabs = [
     { id: "teams", label: "Kelola Tim", icon: Trophy },
-    { id: "players", label: "Kelola Pemain", icon: Users },
-    { id: "matches", label: "Kelola Pertandingan", icon: Calendar },
+    { id: "players", label: "Kelola Pemain", hash: "pemain", icon: Users },
+    { id: "matches", label: "Kelola Pertandingan", hash: "pertandingan", icon: Calendar },
   ] as const;
+
+  const handleTabClick = (tabId: "teams" | "players" | "matches") => {
+    if (tabId === "teams") {
+      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      setActiveSubTab("teams");
+    } else {
+      const tab = subTabs.find((t) => t.id === tabId);
+      if (tab && "hash" in tab) {
+        window.location.hash = tab.hash;
+      }
+    }
+  };
 
   return (
     <MainLayout>
@@ -130,14 +165,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Dashboard Tab Links */}
-        <div className="flex border-b border-zinc-850 gap-2 overflow-x-auto pb-0.5">
+        <div className="flex border-b border-zinc-850 gap-2 overflow-x-auto pb-0.5 animate-fade-in">
           {subTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeSubTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveSubTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 text-xs font-extrabold uppercase border-b-2 tracking-wide transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? "border-emerald-500 text-emerald-400"
@@ -166,7 +201,7 @@ export default function DashboardPage() {
                 <AdminPlayerManager players={players} teams={teams} onRefresh={fetchData} />
               )}
               {activeSubTab === "matches" && (
-                <AdminMatchManager matches={matches} teams={teams} onRefresh={fetchData} />
+                <AdminMatchManager matches={matches} teams={teams} players={players} onRefresh={fetchData} />
               )}
             </>
           )}

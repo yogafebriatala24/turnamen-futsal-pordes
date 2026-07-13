@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Match } from "../molecules/MatchCard";
 import { Team } from "../../utils/standings";
-import { createMatch, updateMatch, deleteMatch } from "../../services/db";
+import { createMatch, updateMatch, deleteMatch, updatePlayer, Player } from "../../services/db";
 import { Button } from "../atoms/Button";
 import { Input } from "../atoms/Input";
 import { Select } from "../atoms/Select";
@@ -12,12 +12,14 @@ import { Calendar, Plus, X, Award } from "lucide-react";
 interface AdminMatchManagerProps {
   matches: Match[];
   teams: Team[];
+  players: Player[];
   onRefresh: () => void;
 }
 
 export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
   matches,
   teams,
+  players,
   onRefresh,
 }) => {
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
@@ -34,6 +36,32 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
   const [groupName, setGroupName] = useState("Grup A");
   const [round, setRound] = useState<"Penyisihan" | "Perempat Final" | "Semi Final" | "Perebutan Juara 3" | "Final">("Penyisihan");
   const [error, setError] = useState("");
+  const [playerGoals, setPlayerGoals] = useState<Record<number, number>>({});
+
+  // Sync playerGoals when homeTeamId, awayTeamId or showForm changes
+  useEffect(() => {
+    if (showForm) {
+      const newGoals: Record<number, number> = {};
+      players.forEach((player) => {
+        if (
+          (homeTeamId && player.team_id === Number(homeTeamId)) ||
+          (awayTeamId && player.team_id === Number(awayTeamId))
+        ) {
+          newGoals[player.id] = player.goals;
+        }
+      });
+      setPlayerGoals(newGoals);
+    } else {
+      setPlayerGoals({});
+    }
+  }, [homeTeamId, awayTeamId, showForm, players]);
+
+  const adjustGoal = (playerId: number, delta: number) => {
+    setPlayerGoals((prev) => ({
+      ...prev,
+      [playerId]: Math.max(0, (prev[playerId] || 0) + delta),
+    }));
+  };
 
   const resetForm = () => {
     setHomeTeamId("");
@@ -109,6 +137,17 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
       } else {
         await createMatch(payload);
       }
+
+      // Save player goals updates concurrently
+      const goalUpdates = Object.entries(playerGoals).map(async ([pIdStr, goalsVal]) => {
+        const playerId = Number(pIdStr);
+        const originalPlayer = players.find((p) => p.id === playerId);
+        if (originalPlayer && originalPlayer.goals !== goalsVal) {
+          await updatePlayer(playerId, { goals: goalsVal });
+        }
+      });
+      await Promise.all(goalUpdates);
+
       resetForm();
       onRefresh();
     } catch (err: any) {
@@ -279,6 +318,98 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                 />
               </FormField>
             </div>
+
+            {/* Goalscorers Management Section */}
+            {(homeTeamId || awayTeamId) && (
+              <div className="border-t border-zinc-850 pt-4 mt-2 space-y-4">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-emerald-500" />
+                  Pencetak Gol & Statistik Pemain (Total Gol)
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Team 1 Players */}
+                  <div className="bg-zinc-950/40 p-4 border border-zinc-850 rounded-2xl space-y-3">
+                    <h5 className="text-xs font-bold text-zinc-350 border-b border-zinc-850/60 pb-1.5 uppercase truncate">
+                      {teams.find((t) => String(t.id) === homeTeamId)?.name || "Tim 1"}
+                    </h5>
+                    
+                    {players.filter((p) => p.team_id === Number(homeTeamId)).length === 0 ? (
+                      <p className="text-xs text-zinc-550 italic">Belum ada pemain terdaftar di tim ini.</p>
+                    ) : (
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {players
+                          .filter((p) => p.team_id === Number(homeTeamId))
+                          .map((player) => (
+                            <div key={player.id} className="flex items-center justify-between py-1 border-b border-zinc-900 last:border-0">
+                              <span className="text-xs text-zinc-350 truncate max-w-[150px]">{player.name}</span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => adjustGoal(player.id, -1)}
+                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
+                                >
+                                  -
+                                </button>
+                                <span className="w-8 text-center text-xs font-bold text-zinc-200">
+                                  {playerGoals[player.id] !== undefined ? playerGoals[player.id] : player.goals}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => adjustGoal(player.id, 1)}
+                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Team 2 Players */}
+                  <div className="bg-zinc-950/40 p-4 border border-zinc-850 rounded-2xl space-y-3">
+                    <h5 className="text-xs font-bold text-zinc-350 border-b border-zinc-850/60 pb-1.5 uppercase truncate">
+                      {teams.find((t) => String(t.id) === awayTeamId)?.name || "Tim 2"}
+                    </h5>
+                    
+                    {players.filter((p) => p.team_id === Number(awayTeamId)).length === 0 ? (
+                      <p className="text-xs text-zinc-550 italic">Belum ada pemain terdaftar di tim ini.</p>
+                    ) : (
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {players
+                          .filter((p) => p.team_id === Number(awayTeamId))
+                          .map((player) => (
+                            <div key={player.id} className="flex items-center justify-between py-1 border-b border-zinc-900 last:border-0">
+                              <span className="text-xs text-zinc-350 truncate max-w-[150px]">{player.name}</span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => adjustGoal(player.id, -1)}
+                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
+                                >
+                                  -
+                                </button>
+                                <span className="w-8 text-center text-xs font-bold text-zinc-200">
+                                  {playerGoals[player.id] !== undefined ? playerGoals[player.id] : player.goals}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => adjustGoal(player.id, 1)}
+                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-2.5 pt-2">
               <Button type="button" variant="secondary" onClick={resetForm}>

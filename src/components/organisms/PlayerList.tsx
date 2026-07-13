@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Player } from "../../services/db";
 import { Team } from "../../utils/standings";
 import { Select } from "../atoms/Select";
-import { Users, Shield } from "lucide-react";
+import { Users, Shield, Search, X } from "lucide-react";
 
 interface PlayerListProps {
   players: Player[];
@@ -16,13 +16,27 @@ export const PlayerList: React.FC<PlayerListProps> = ({
   loading = false,
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Filter players by team and search query
   const filteredPlayers = useMemo(() => {
-    if (selectedTeamId === "all") {
-      return players;
+    let list = players;
+    if (selectedTeamId !== "all") {
+      list = list.filter((p) => p.team_id === Number(selectedTeamId));
     }
-    return players.filter((p) => p.team_id === Number(selectedTeamId));
-  }, [players, selectedTeamId]);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((p) => p.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [players, selectedTeamId, searchQuery]);
+
+  // Only display teams that have matching search players (if search is active)
+  const activeTeams = useMemo(() => {
+    if (!searchQuery.trim()) return teams;
+    const matchingTeamIds = new Set(filteredPlayers.map((p) => p.team_id));
+    return teams.filter((t) => matchingTeamIds.has(t.id));
+  }, [teams, filteredPlayers, searchQuery]);
 
   if (loading) {
     return (
@@ -37,13 +51,14 @@ export const PlayerList: React.FC<PlayerListProps> = ({
     );
   }
 
-  // Group players by team if "All Teams" is selected, otherwise list them directly
   const renderPlayersList = () => {
     if (filteredPlayers.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 text-zinc-500 bg-zinc-900/30 rounded-2xl border border-zinc-850">
+        <div className="flex flex-col items-center justify-center py-16 text-zinc-500 bg-zinc-900/30 rounded-2xl border border-zinc-850">
           <Users className="w-10 h-10 mb-2 text-zinc-650" />
-          <span className="text-sm">Tidak ada pemain terdaftar di tim ini.</span>
+          <span className="text-sm">
+            {searchQuery ? "Tidak ada nama pemain yang cocok dengan pencarian." : "Tidak ada pemain terdaftar di tim ini."}
+          </span>
         </div>
       );
     }
@@ -76,17 +91,10 @@ export const PlayerList: React.FC<PlayerListProps> = ({
       );
     }
 
-    // Grouping by Team for "All Teams"
-    const grouped: Record<number, Player[]> = {};
-    players.forEach((p) => {
-      if (!grouped[p.team_id]) grouped[p.team_id] = [];
-      grouped[p.team_id].push(p);
-    });
-
     return (
       <div className="space-y-6">
-        {teams.map((team) => {
-          const teamPlayers = grouped[team.id] || [];
+        {activeTeams.map((team) => {
+          const teamPlayers = filteredPlayers.filter((p) => p.team_id === team.id);
 
           return (
             <div
@@ -136,23 +144,47 @@ export const PlayerList: React.FC<PlayerListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Team Selection Bar */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md p-4 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="flex items-center gap-2 self-start sm:self-center">
+      {/* Team Selection & Search Bar */}
+      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between relative z-30">
+        <div className="flex items-center gap-2 self-start md:self-center">
           <Users className="w-4 h-4 text-emerald-500" />
           <span className="text-sm font-bold text-zinc-350">Daftar Pemain Berdasarkan Tim</span>
         </div>
 
-        <div className="w-full sm:w-60">
-          <Select
-            value={selectedTeamId}
-            onChange={(e) => setSelectedTeamId(e.target.value)}
-            options={[
-              { value: "all", label: "Semua Tim" },
-              ...teams.map((t) => ({ value: String(t.id), label: t.name })),
-            ]}
-            placeholder="Pilih Tim"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          {/* Search Player Name Input */}
+          <div className="relative w-full sm:w-60">
+            <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-zinc-550" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari nama pemain..."
+              className="w-full pl-9 pr-8 py-2 bg-zinc-950 border border-zinc-850 hover:border-zinc-800 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl text-xs text-zinc-200 placeholder-zinc-550 transition-all outline-none focus:ring-4"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-3 text-zinc-550 hover:text-zinc-300 cursor-pointer"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Team Selector Select */}
+          <div className="w-full sm:w-56">
+            <Select
+              value={selectedTeamId}
+              onChange={(e) => setSelectedTeamId(e.target.value)}
+              options={[
+                { value: "all", label: "Semua Tim" },
+                ...teams.map((t) => ({ value: String(t.id), label: t.name })),
+              ]}
+              placeholder="Pilih Tim"
+            />
+          </div>
         </div>
       </div>
 

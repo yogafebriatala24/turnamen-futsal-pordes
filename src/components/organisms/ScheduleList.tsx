@@ -22,8 +22,40 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
   const [roundFilter, setRoundFilter] = useState<string>("all");
 
   const rounds = useMemo(() => {
-    const list = new Set(matches.map((m) => m.round));
-    return ["all", ...Array.from(list)];
+    const list = Array.from(new Set(matches.map((m) => m.round)));
+
+    list.sort((a, b) => {
+      const getPriority = (name: string) => {
+        const lower = name.toLowerCase();
+        if (lower.includes("grup a")) return 1;
+        if (lower.includes("grup b")) return 2;
+        if (lower.includes("grup c")) return 3;
+        if (lower.includes("grup d")) return 4;
+        if (lower.includes("grup e")) return 5;
+        if (lower.includes("grup")) return 10;
+        if (lower.includes("penyisihan")) return 11;
+        if (lower.includes("perempat") || lower.includes("quarter")) return 20;
+        if (lower.includes("semi")) return 30;
+        if (
+          lower.includes("perebutan") ||
+          lower.includes("juara 3") ||
+          lower.includes("ketiga")
+        )
+          return 40;
+        if (lower.includes("final")) return 50;
+        return 100;
+      };
+
+      const pA = getPriority(a);
+      const pB = getPriority(b);
+
+      if (pA !== pB) {
+        return pA - pB;
+      }
+      return a.localeCompare(b);
+    });
+
+    return ["all", ...list];
   }, [matches]);
 
   const filteredMatches = useMemo(() => {
@@ -37,9 +69,18 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
 
   const sortedMatches = useMemo(() => {
     return [...filteredMatches].sort((a, b) => {
-      const priority = { ongoing: 0, scheduled: 1, finished: 2 };
-      if (priority[a.status] !== priority[b.status]) {
-        return priority[a.status] - priority[b.status];
+      const getPriority = (status: string) => {
+        if (status === "ongoing") return 0;
+        if (status === "scheduled") return 1;
+        if (status === "finished") return 2;
+        return 99;
+      };
+
+      const pA = getPriority(a.status);
+      const pB = getPriority(b.status);
+
+      if (pA !== pB) {
+        return pA - pB;
       }
       // If same status:
       // Recently finished matches first, but live and scheduled matches earliest first
@@ -69,7 +110,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
   return (
     <div className="flex flex-col gap-6">
       {/* Interactive Filters Panel */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md p-4 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md p-4 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between relative z-30">
         <div className="flex items-center gap-2 self-start sm:self-center">
           <Filter className="w-4 h-4 text-emerald-500" />
           <span className="text-sm font-bold text-zinc-350">
