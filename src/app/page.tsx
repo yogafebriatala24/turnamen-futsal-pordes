@@ -1,65 +1,142 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { MainLayout } from "../components/templates/MainLayout";
+import { StandingsTable } from "../components/organisms/StandingsTable";
+import { TopScoreList } from "../components/organisms/TopScoreList";
+import { ScheduleList } from "../components/organisms/ScheduleList";
+import { PlayerList } from "../components/organisms/PlayerList";
+import { getTeams, getPlayers, getMatches, Player } from "../services/db";
+import { Match } from "../components/molecules/MatchCard";
+import { Team, calculateStandings, StandingRow } from "../utils/standings";
+import { Trophy, Calendar, Award, RefreshCw, Users } from "lucide-react";
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<
+    "standings" | "topscore" | "schedule" | "players"
+  >("standings");
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const [fetchedTeams, fetchedPlayers, fetchedMatches] = await Promise.all([
+        getTeams(),
+        getPlayers(),
+        getMatches(),
+      ]);
+
+      setTeams(fetchedTeams);
+      setPlayers(fetchedPlayers);
+      setMatches(fetchedMatches);
+    } catch (error) {
+      console.error("Failed to load tournament data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
+
+  // Compute standings from loaded teams and matches
+  const standings = React.useMemo(() => {
+    return calculateStandings(teams, matches);
+  }, [teams, matches]);
+
+  const tabs = [
+    {
+      id: "standings",
+      label: "Klasemen",
+      icon: Trophy,
+    },
+    {
+      id: "schedule",
+      label: "Jadwal & Hasil",
+      icon: Calendar,
+    },
+    {
+      id: "topscore",
+      label: "Top Score",
+      icon: Award,
+    },
+    {
+      id: "players",
+      label: "Daftar Pemain",
+      icon: Users,
+    },
+  ] as const;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <MainLayout>
+      <div className="space-y-6">
+        {/* Tab Buttons bar */}
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-1">
+          <div className="flex gap-1 sm:gap-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-4 py-3 text-xs sm:text-sm font-bold tracking-wide uppercase border-b-2 transition-all cursor-pointer ${
+                    isActive
+                      ? "border-emerald-500 text-emerald-450"
+                      : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  <Icon
+                    className={`w-4 h-4 ${isActive ? "text-emerald-500" : "text-zinc-600"}`}
+                  />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Refresh trigger */}
+          <button
+            onClick={handleRefresh}
+            disabled={loading || refreshing}
+            className="p-2 hover:bg-zinc-900 rounded-xl border border-zinc-900 hover:border-zinc-800 transition-colors text-zinc-500 hover:text-zinc-200 cursor-pointer disabled:opacity-50"
+            title="Muat ulang data"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <RefreshCw
+              className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-500" : ""}`}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </button>
         </div>
-      </main>
-    </div>
+
+        {/* Tab Contents */}
+        <div className="mt-4 min-h-[400px]">
+          {activeTab === "standings" && (
+            <StandingsTable standings={standings} loading={loading} />
+          )}
+
+          {activeTab === "schedule" && (
+            <ScheduleList matches={matches} loading={loading} />
+          )}
+
+          {activeTab === "topscore" && (
+            <TopScoreList players={players} loading={loading} />
+          )}
+
+          {activeTab === "players" && (
+            <PlayerList players={players} teams={teams} loading={loading} />
+          )}
+        </div>
+      </div>
+    </MainLayout>
   );
 }

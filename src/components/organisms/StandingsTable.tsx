@@ -1,0 +1,220 @@
+import React from "react";
+import { StandingRow } from "../../utils/standings";
+import { Trophy } from "lucide-react";
+
+interface StandingsTableProps {
+  standings: Record<string, StandingRow[]>;
+  loading?: boolean;
+}
+
+export const StandingsTable: React.FC<StandingsTableProps> = ({
+  standings,
+  loading = false,
+}) => {
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4 animate-pulse">
+        {[1, 2].map((i) => (
+          <div key={i} className="bg-zinc-900/40 rounded-2xl p-4 border border-zinc-800">
+            <div className="h-5 w-24 bg-zinc-800 rounded mb-4" />
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map((j) => (
+                <div key={j} className="h-10 bg-zinc-800/60 rounded" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const groups = Object.keys(standings).sort();
+
+  if (groups.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-zinc-500 bg-zinc-900/30 rounded-2xl border border-zinc-850">
+        <Trophy className="w-10 h-10 mb-2 text-zinc-650" />
+        <span className="text-sm">Belum ada data klasemen.</span>
+      </div>
+    );
+  }
+
+  const renderEmblem = (name: string, url?: string) => {
+    if (url) {
+      return (
+        <img
+          src={url}
+          alt={name}
+          className="w-6 h-6 object-contain rounded-full bg-zinc-850 p-0.5"
+        />
+      );
+    }
+    const initials = name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+
+    return (
+      <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-[9px] text-emerald-400">
+        {initials}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-8">
+      {groups.map((groupName) => {
+        const rows = standings[groupName];
+
+        return (
+          <div
+            key={groupName}
+            className="bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/80 overflow-hidden shadow-xl"
+          >
+            {/* Group Title Header */}
+            <div className="bg-zinc-900/90 px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase">
+                {groupName}
+              </h3>
+              <span className="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/15">
+                Klasemen Grup
+              </span>
+            </div>
+
+            {/* Standings Table container (responsive horizontal scrolling on tiny screens) */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-zinc-800/60 text-[10px] font-bold text-zinc-500 uppercase tracking-wider bg-zinc-950/20">
+                    <th className="py-3 px-4 w-12 min-w-[48px] max-w-[48px] text-center sticky left-0 z-20 bg-zinc-900">POS</th>
+                    <th className="py-3 px-4 min-w-[150px] sticky left-[48px] z-20 bg-zinc-900 border-r border-zinc-800/80">TIM</th>
+                    <th className="py-3 px-3 text-center w-12">MAIN</th>
+                    <th className="py-3 px-2 text-center w-10">M</th>
+                    <th className="py-3 px-2 text-center w-10">S</th>
+                    <th className="py-3 px-2 text-center w-10">K</th>
+                    <th className="py-3 px-2 text-center w-10">GM</th>
+                    <th className="py-3 px-2 text-center w-10">GK</th>
+                    <th className="py-3 px-3 text-center w-14">SG</th>
+                    <th className="py-3 px-4 text-center w-16 sticky right-0 z-20 bg-zinc-900 border-l border-zinc-800/80">POIN</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-850/40 text-sm text-zinc-300">
+                  {rows.map((row, index) => {
+                    const isTopTwo = index < 2; // Qualify highlight
+                    return (
+                      <tr
+                        key={row.teamId}
+                        className={`transition-colors duration-150 ${
+                          isTopTwo
+                            ? "bg-emerald-950/20 hover:bg-emerald-950/30 text-emerald-100"
+                            : "hover:bg-zinc-800/25"
+                        }`}
+                      >
+                        {/* Position */}
+                        <td className={`py-3.5 px-4 text-center font-bold sticky left-0 z-10 ${
+                          isTopTwo 
+                            ? "bg-[#0c2417] text-emerald-350" 
+                            : "bg-zinc-900 text-zinc-500"
+                        }`}>
+                          <span
+                            className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-xs ${
+                              isTopTwo
+                                ? "bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
+                                : "text-zinc-550"
+                            }`}
+                          >
+                            {index + 1}
+                          </span>
+                        </td>
+
+                        {/* Team Name */}
+                        <td className={`py-3.5 px-4 font-semibold sticky left-[48px] z-10 border-r border-zinc-800/60 ${
+                          isTopTwo 
+                            ? "bg-[#0c2417] text-emerald-300" 
+                            : "bg-zinc-900 text-zinc-200"
+                        }`}>
+                          <div className="flex items-center gap-2.5">
+                            {renderEmblem(row.name, row.logoUrl)}
+                            <span className="truncate max-w-[160px]">{row.name}</span>
+                          </div>
+                        </td>
+
+                        {/* Played */}
+                        <td className="py-3.5 px-3 text-center font-medium text-zinc-300">
+                          {row.played}
+                        </td>
+
+                        {/* Won */}
+                        <td className="py-3.5 px-2 text-center text-zinc-400">
+                          {row.won}
+                        </td>
+
+                        {/* Drawn */}
+                        <td className="py-3.5 px-2 text-center text-zinc-400">
+                          {row.drawn}
+                        </td>
+
+                        {/* Lost */}
+                        <td className="py-3.5 px-2 text-center text-zinc-400">
+                          {row.lost}
+                        </td>
+
+                        {/* GM */}
+                        <td className="py-3.5 px-2 text-center text-zinc-500">
+                          {row.goalsFor}
+                        </td>
+
+                        {/* GK */}
+                        <td className="py-3.5 px-2 text-center text-zinc-500">
+                          {row.goalsAgainst}
+                        </td>
+
+                        {/* Goal Difference */}
+                        <td
+                          className={`py-3.5 px-3 text-center font-semibold ${
+                            row.goalDifference > 0
+                              ? "text-emerald-500"
+                              : row.goalDifference < 0
+                              ? "text-rose-500"
+                              : "text-zinc-500"
+                          }`}
+                        >
+                          {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
+                        </td>
+
+                        {/* Points */}
+                        <td className={`py-3.5 px-4 text-center font-extrabold text-sm sticky right-0 z-10 border-l border-zinc-800/60 ${
+                          isTopTwo 
+                            ? "bg-[#0c2417] text-emerald-300" 
+                            : "bg-zinc-900 text-white"
+                        }`}>
+                          {row.points}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Legend info footer */}
+            <div className="px-5 py-2.5 bg-zinc-950/40 border-t border-zinc-800 text-[10px] text-zinc-550 flex flex-wrap gap-x-4 gap-y-1">
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-emerald-600/20 border border-emerald-500/20" />
+                Lolos Kualifikasi
+              </span>
+              <span className="inline">•</span>
+              <span>M: Menang</span>
+              <span>S: Seri</span>
+              <span>K: Kalah</span>
+              <span>GM: Gol Memasukkan</span>
+              <span>GK: Gol Kemasukan</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
