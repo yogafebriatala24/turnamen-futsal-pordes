@@ -13,9 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"), // Silakan ganti dengan domain hosting Anda (misal Vercel) saat rilis nanti
+  metadataBase: new URL("https://turnamen-futsal-katar-rw03.vercel.app"),
   title: "Turnamen Futsal Karang Taruna RW 03",
-  description: "Portal resmi Turnamen Futsal Karang Taruna RW 03. Lihat klasemen terbaru, jadwal pertandingan, dan daftar pencetak gol (top score).",
+  description:
+    "Portal resmi Turnamen Futsal Karang Taruna RW 03. Lihat klasemen terbaru, jadwal pertandingan, dan daftar pencetak gol (top score).",
   icons: {
     icon: "/favicon-32x32.png",
     shortcut: "/favicon-32x32.png",
@@ -23,7 +24,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Turnamen Futsal Karang Taruna RW 03",
-    description: "Portal resmi Turnamen Futsal Karang Taruna RW 03. Lihat klasemen terbaru, jadwal pertandingan, dan daftar pencetak gol (top score).",
+    description:
+      "Portal resmi Turnamen Futsal Karang Taruna RW 03. Lihat klasemen terbaru, jadwal pertandingan, dan daftar pencetak gol (top score).",
     type: "website",
     images: [
       {
@@ -46,7 +48,9 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col overflow-x-hidden">{children}</body>
+      <body className="min-h-full flex flex-col overflow-x-hidden">
+        {children}
+      </body>
     </html>
   );
 }

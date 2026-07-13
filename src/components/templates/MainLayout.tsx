@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
+import Image from "next/image";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -20,8 +21,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <header className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-900">
         <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-650 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-all">
-              <Trophy className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-all">
+              <Image
+                src="/logo.png"
+                alt="Turnamen Futsal Karang Taruna RW 03"
+                width={32}
+                height={32}
+              />
             </div>
             <div>
               <h1 className="text-sm font-extrabold tracking-wider text-white uppercase group-hover:text-emerald-400 transition-colors">
