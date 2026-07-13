@@ -93,12 +93,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   };
 
   return (
-    <div
-      onClick={onClick}
-      className={`relative overflow-hidden bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-4 shadow-xl hover:border-zinc-700/60 transition-all duration-300 ${
-        onClick ? "cursor-pointer hover:border-emerald-500/40 hover:bg-zinc-900/80 active:scale-[0.99]" : ""
-      }`}
-    >
+    <div className="relative overflow-hidden bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-4 shadow-xl hover:border-zinc-700/60 transition-all duration-300">
       {/* Accent Top Border for Live Matches */}
       {match.status === "ongoing" && (
         <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500 animate-pulse" />
@@ -158,14 +153,25 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
       {/* Footer Schedule Details */}
       <div className="mt-4 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="w-3.5 h-3.5 text-zinc-600" />
-          <span>{formatDate(match.match_date)}</span>
+        <div className="flex flex-col gap-1 text-[11px] sm:text-xs">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-zinc-650" />
+            <span>{formatDate(match.match_date)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-zinc-650" />
+            <span>{formatTime(match.match_date)} WIB</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-zinc-600" />
-          <span>{formatTime(match.match_date)} WIB</span>
-        </div>
+
+        {onClick && (
+          <button
+            onClick={onClick}
+            className="px-3.5 py-1.5 bg-zinc-800/60 hover:bg-zinc-850 text-emerald-450 hover:text-emerald-400 text-xs font-bold rounded-xl border border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+          >
+            Detail
+          </button>
+        )}
       </div>
 
       {/* Admin Actions overlay/footer */}
