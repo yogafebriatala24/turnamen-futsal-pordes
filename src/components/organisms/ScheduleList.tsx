@@ -337,6 +337,15 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                             selectedMatchForDetail.id,
                             matches
                           );
+                          const matchGoals = Number(
+                            selectedMatchForDetail.player_goals?.[String(player.id)] || 0
+                          );
+                          const matchYellow = Number(
+                            selectedMatchForDetail.player_yellow_cards?.[String(player.id)] || 0
+                          );
+                          const matchRed = Number(
+                            selectedMatchForDetail.player_red_cards?.[String(player.id)] || 0
+                          );
                           return (
                             <li
                               key={player.id}
@@ -347,20 +356,20 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                               }`}>
                                 <span className="truncate">{player.name}</span>
                                 <span className="flex gap-0.5 shrink-0">
-                                  {player.yellow_cards > 0 && (
+                                  {selectedMatchForDetail.status !== "scheduled" && matchYellow > 0 && (
                                     <span
-                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-950 select-none"
-                                      title={`${player.yellow_cards} Kartu Kuning`}
+                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-955 select-none"
+                                      title={`${matchYellow} Kartu Kuning`}
                                     >
-                                      {player.yellow_cards}
+                                      {matchYellow}
                                     </span>
                                   )}
-                                  {player.red_cards > 0 && (
+                                  {selectedMatchForDetail.status !== "scheduled" && matchRed > 0 && (
                                     <span
                                       className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
-                                      title={`${player.red_cards} Kartu Merah`}
+                                      title={`${matchRed} Kartu Merah`}
                                     >
-                                      {player.red_cards}
+                                      {matchRed}
                                     </span>
                                   )}
                                 </span>
@@ -370,9 +379,9 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                                   SANKSI
                                 </span>
                               ) : (
-                                player.goals > 0 && (
+                                selectedMatchForDetail.status !== "scheduled" && matchGoals > 0 && (
                                   <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
-                                    {player.goals} Gol
+                                    {matchGoals} Gol
                                   </span>
                                 )
                               )}
@@ -408,6 +417,15 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                             selectedMatchForDetail.id,
                             matches
                           );
+                          const matchGoals = Number(
+                            selectedMatchForDetail.player_goals?.[String(player.id)] || 0
+                          );
+                          const matchYellow = Number(
+                            selectedMatchForDetail.player_yellow_cards?.[String(player.id)] || 0
+                          );
+                          const matchRed = Number(
+                            selectedMatchForDetail.player_red_cards?.[String(player.id)] || 0
+                          );
                           return (
                             <li
                               key={player.id}
@@ -418,20 +436,20 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                               }`}>
                                 <span className="truncate">{player.name}</span>
                                 <span className="flex gap-0.5 shrink-0">
-                                  {player.yellow_cards > 0 && (
+                                  {selectedMatchForDetail.status !== "scheduled" && matchYellow > 0 && (
                                     <span
-                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-950 select-none"
-                                      title={`${player.yellow_cards} Kartu Kuning`}
+                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-955 select-none"
+                                      title={`${matchYellow} Kartu Kuning`}
                                     >
-                                      {player.yellow_cards}
+                                      {matchYellow}
                                     </span>
                                   )}
-                                  {player.red_cards > 0 && (
+                                  {selectedMatchForDetail.status !== "scheduled" && matchRed > 0 && (
                                     <span
                                       className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
-                                      title={`${player.red_cards} Kartu Merah`}
+                                      title={`${matchRed} Kartu Merah`}
                                     >
-                                      {player.red_cards}
+                                      {matchRed}
                                     </span>
                                   )}
                                 </span>
@@ -441,9 +459,9 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                                   SANKSI
                                 </span>
                               ) : (
-                                player.goals > 0 && (
+                                selectedMatchForDetail.status !== "scheduled" && matchGoals > 0 && (
                                   <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
-                                    {player.goals} Gol
+                                    {matchGoals} Gol
                                   </span>
                                 )
                               )}
