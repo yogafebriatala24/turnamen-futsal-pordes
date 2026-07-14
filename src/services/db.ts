@@ -165,6 +165,9 @@ export async function getMatches(): Promise<Match[]> {
       status,
       group_name,
       round,
+      player_goals,
+      player_yellow_cards,
+      player_red_cards,
       teams_home:teams!home_team_id(name, logo_url),
       teams_away:teams!away_team_id(name, logo_url)
     `)

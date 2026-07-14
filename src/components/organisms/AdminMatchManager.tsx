@@ -96,6 +96,23 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
     }
   }, [homeTeamId, awayTeamId, showForm, players, editingMatch]);
 
+  // Automatically determine the match group based on selected round and team groups
+  useEffect(() => {
+    if (round !== "Penyisihan") {
+      setGroupName("Sistem Gugur");
+    } else {
+      const homeTeam = teams.find((t) => String(t.id) === homeTeamId);
+      const awayTeam = teams.find((t) => String(t.id) === awayTeamId);
+      if (homeTeam && awayTeam && homeTeam.group_name === awayTeam.group_name) {
+        setGroupName(homeTeam.group_name);
+      } else if (homeTeam && !awayTeamId) {
+        setGroupName(homeTeam.group_name);
+      } else if (awayTeam && !homeTeamId) {
+        setGroupName(awayTeam.group_name);
+      }
+    }
+  }, [homeTeamId, awayTeamId, round, teams]);
+
   const adjustGoal = (playerId: number, delta: number) => {
     setPlayerGoals((prev) => ({
       ...prev,
