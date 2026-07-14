@@ -571,7 +571,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                   Pencetak Gol & Statistik Pemain (Total Gol)
                 </h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Team 1 Players */}
                   <div className="bg-zinc-950/40 p-4 border border-zinc-850 rounded-2xl space-y-3">
                     <h5 className="text-xs font-bold text-zinc-350 border-b border-zinc-850/60 pb-1.5 uppercase truncate">
@@ -610,75 +610,89 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                     </span>
                                   )}
                                 </span>
-                                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-1.5 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
+                                <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:items-center sm:justify-end sm:gap-4 sm:w-auto shrink-0 bg-zinc-955/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0 mt-1.5 sm:mt-0">
                                   {/* Goals Input */}
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustGoal(player.id, -1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
-                                      {playerGoals[player.id] || 0}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustGoal(player.id, 1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      +
-                                    </button>
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-zinc-500 font-extrabold uppercase select-none tracking-wider text-center">Gol</span>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustGoal(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerGoals[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustGoal(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
+
                                   {/* Yellow Card Input */}
-                                  <div className="flex items-center gap-1">
-                                    <span className="w-2.5 h-3.5 bg-amber-400/10 border border-amber-550/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-amber-500 select-none cursor-help shrink-0" title="Kartu Kuning">🟨</span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustYellowCard(player.id, -1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
-                                      {playerYellowCards[player.id] || 0}
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-yellow-500 font-extrabold uppercase select-none tracking-wider text-center gap-0.5">
+                                      <span className="w-1.5 h-2 bg-yellow-400 rounded-[1px] inline-block shrink-0" />
+                                      Kuning
                                     </span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustYellowCard(player.id, 1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      +
-                                    </button>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustYellowCard(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerYellowCards[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustYellowCard(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-450 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
+
                                   {/* Red Card Input */}
-                                  <div className="flex items-center gap-1">
-                                    <span className="w-2.5 h-3.5 bg-rose-500/10 border border-rose-600/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-rose-500 select-none cursor-help shrink-0" title="Kartu Merah">🟥</span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustRedCard(player.id, -1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
-                                      {playerRedCards[player.id] || 0}
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-rose-500 font-extrabold uppercase select-none tracking-wider text-center gap-0.5">
+                                      <span className="w-1.5 h-2 bg-red-500 rounded-[1px] inline-block shrink-0" />
+                                      Merah
                                     </span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustRedCard(player.id, 1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      +
-                                    </button>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustRedCard(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerRedCards[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustRedCard(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -726,75 +740,89 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                     </span>
                                   )}
                                 </span>
-                                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-1.5 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
+                                <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:items-center sm:justify-end sm:gap-4 sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0 mt-1.5 sm:mt-0">
                                   {/* Goals Input */}
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustGoal(player.id, -1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
-                                      {playerGoals[player.id] || 0}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustGoal(player.id, 1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      +
-                                    </button>
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-zinc-500 font-extrabold uppercase select-none tracking-wider text-center">Gol</span>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustGoal(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerGoals[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustGoal(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
+
                                   {/* Yellow Card Input */}
-                                  <div className="flex items-center gap-1">
-                                    <span className="w-2.5 h-3.5 bg-amber-400/10 border border-amber-550/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-amber-500 select-none cursor-help shrink-0" title="Kartu Kuning">🟨</span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustYellowCard(player.id, -1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
-                                      {playerYellowCards[player.id] || 0}
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-yellow-500 font-extrabold uppercase select-none tracking-wider text-center gap-0.5">
+                                      <span className="w-1.5 h-2 bg-yellow-400 rounded-[1px] inline-block shrink-0" />
+                                      Kuning
                                     </span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustYellowCard(player.id, 1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-450 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      +
-                                    </button>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustYellowCard(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerYellowCards[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustYellowCard(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-405 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
+
                                   {/* Red Card Input */}
-                                  <div className="flex items-center gap-1">
-                                    <span className="w-2.5 h-3.5 bg-rose-500/10 border border-rose-600/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-rose-500 select-none cursor-help shrink-0" title="Kartu Merah">🟥</span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustRedCard(player.id, -1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
-                                      {playerRedCards[player.id] || 0}
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-rose-500 font-extrabold uppercase select-none tracking-wider text-center gap-0.5">
+                                      <span className="w-1.5 h-2 bg-red-500 rounded-[1px] inline-block shrink-0" />
+                                      Merah
                                     </span>
-                                    <button
-                                      type="button"
-                                      disabled={suspension.isSuspended}
-                                      onClick={() => adjustRedCard(player.id, 1)}
-                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-                                    >
-                                      +
-                                    </button>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustRedCard(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerRedCards[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustRedCard(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
