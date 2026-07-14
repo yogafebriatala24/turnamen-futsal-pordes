@@ -192,6 +192,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
             <MatchCard
               key={match.id}
               match={match}
+              players={players}
               isAdmin={isAdmin}
               onEdit={onEdit}
               onDelete={onDelete}
