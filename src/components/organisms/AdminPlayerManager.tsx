@@ -156,13 +156,18 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
   return (
     <div className="space-y-6">
       {/* Header controls */}
-      <div className="flex justify-between items-center bg-zinc-900/40 p-4 border border-zinc-800 rounded-2xl">
-        <span className="text-sm font-semibold text-zinc-300">
+      <div className="flex justify-between items-center bg-zinc-900/40 p-3 sm:p-4 border border-zinc-800 rounded-2xl gap-2">
+        <span className="text-[10px] xs:text-xs sm:text-sm font-semibold text-zinc-300 whitespace-nowrap shrink-0">
           Jumlah Pemain Terdaftar: <strong className="text-emerald-400 font-extrabold">{players.length}</strong>
         </span>
         {!showForm && teams.length > 0 && (
-          <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="w-4 h-4" />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowForm(true)}
+            className="text-[10px] xs:text-xs sm:text-xs px-2 xs:px-3 py-1 xs:py-1.5 whitespace-nowrap shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" />
             Tambah Pemain
           </Button>
         )}
