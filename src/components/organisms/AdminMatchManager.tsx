@@ -491,7 +491,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                         Belum ada pemain terdaftar di tim ini.
                       </p>
                     ) : (
-                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                         {players
                           .filter((p) => p.team_id === Number(homeTeamId))
                           .map((player) => {
@@ -516,7 +516,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                     </span>
                                   )}
                                 </span>
-                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
+                                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-1.5 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
                                   {/* Goals Input */}
                                   <div className="flex items-center gap-1">
                                     <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
@@ -607,7 +607,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                         Belum ada pemain terdaftar di tim ini.
                       </p>
                     ) : (
-                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                         {players
                           .filter((p) => p.team_id === Number(awayTeamId))
                           .map((player) => {
@@ -632,7 +632,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                     </span>
                                   )}
                                 </span>
-                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
+                                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-1.5 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
                                   {/* Goals Input */}
                                   <div className="flex items-center gap-1">
                                     <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
