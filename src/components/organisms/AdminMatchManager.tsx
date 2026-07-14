@@ -504,19 +504,19 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                             return (
                               <div
                                 key={player.id}
-                                className="flex items-center justify-between py-2 border-b border-zinc-900 last:border-0 gap-3"
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2.5 border-b border-zinc-900/60 last:border-0 gap-2 sm:gap-3"
                               >
-                                <span className={`text-xs truncate flex-grow min-w-0 flex items-center gap-1.5 ${
+                                <span className={`text-xs font-semibold flex items-center gap-1.5 min-w-0 ${
                                   suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-355"
                                 }`} title={player.name}>
-                                  <span className="truncate">{player.name}</span>
+                                  <span className="truncate max-w-[200px]">{player.name}</span>
                                   {suspension.isSuspended && (
                                     <span className="text-[7px] font-black text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
                                       🚫 SANKSI
                                     </span>
                                   )}
                                 </span>
-                                <div className="flex items-center gap-4 shrink-0">
+                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
                                   {/* Goals Input */}
                                   <div className="flex items-center gap-1">
                                     <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
@@ -620,19 +620,19 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                             return (
                               <div
                                 key={player.id}
-                                className="flex items-center justify-between py-2 border-b border-zinc-900 last:border-0 gap-3"
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2.5 border-b border-zinc-900/60 last:border-0 gap-2 sm:gap-3"
                               >
-                                <span className={`text-xs truncate flex-grow min-w-0 flex items-center gap-1.5 ${
+                                <span className={`text-xs font-semibold flex items-center gap-1.5 min-w-0 ${
                                   suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-355"
                                 }`} title={player.name}>
-                                  <span className="truncate">{player.name}</span>
+                                  <span className="truncate max-w-[200px]">{player.name}</span>
                                   {suspension.isSuspended && (
                                     <span className="text-[7px] font-black text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
                                       🚫 SANKSI
                                     </span>
                                   )}
                                 </span>
-                                <div className="flex items-center gap-4 shrink-0">
+                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
                                   {/* Goals Input */}
                                   <div className="flex items-center gap-1">
                                     <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
