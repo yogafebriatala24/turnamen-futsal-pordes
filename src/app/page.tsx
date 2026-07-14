@@ -150,18 +150,18 @@ export default function Home() {
             teams.find((t) => t.id === id)?.name || `Tim ${id}`;
 
           return (
-            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between p-3 bg-zinc-900/30 border border-zinc-900 rounded-2xl text-[10px] sm:text-xs">
+            <div className="mx-auto flex flex-col sm:flex-row gap-2 items-center justify-center p-2 px-3.5 bg-zinc-900/30 border border-zinc-900 rounded-2xl w-fit max-w-full">
               {/* Left side: Live Matches status */}
-              {liveMatches.length > 0 ? (
-                <div className="flex items-center gap-2 text-rose-400 font-bold bg-rose-500/5 px-2.5 py-1.5 rounded-xl border border-rose-500/10">
-                  <span className="relative flex h-2 w-2">
+              {liveMatches.length > 0 && (
+                <div className="flex items-center gap-1.5 text-rose-400 font-bold bg-rose-500/5 px-2.5 py-1.5 rounded-xl border border-rose-500/10 w-full sm:w-auto flex-nowrap overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  <span className="relative flex h-1.5 w-1.5 shrink-0">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
                   </span>
-                  <span className="uppercase tracking-wider font-extrabold text-[9px]">
+                  <span className="uppercase tracking-wider font-extrabold text-[8px] sm:text-[9px] shrink-0">
                     LIVE:
                   </span>
-                  <span className="text-zinc-250 truncate">
+                  <span className="text-zinc-250 text-[9px] sm:text-[11px] whitespace-nowrap shrink-0">
                     {liveMatches
                       .map(
                         (m) =>
@@ -170,21 +170,24 @@ export default function Home() {
                       .join(" | ")}
                   </span>
                 </div>
-              ) : (
-                <div />
+              )}
+
+              {/* Separator Dot between LIVE and Upcoming if both exist */}
+              {liveMatches.length > 0 && nearestMatch && (
+                <span className="hidden sm:inline text-zinc-700 font-bold select-none px-1">•</span>
               )}
 
               {/* Right side: Nearest Match info */}
               {nearestMatch && (
-                <div className="flex items-center gap-2 text-emerald-400 font-semibold bg-emerald-500/5 px-2.5 py-1.5 rounded-xl border border-emerald-500/10 sm:self-center">
-                  <span className="uppercase tracking-wider font-extrabold text-[9px] text-emerald-500">
+                <div className="flex items-center gap-1.5 text-emerald-450 font-semibold bg-emerald-500/5 px-2.5 py-1.5 rounded-xl border border-emerald-500/10 w-full sm:w-auto flex-nowrap overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  <span className="uppercase tracking-wider font-extrabold text-[8px] sm:text-[9px] text-emerald-500 shrink-0">
                     Laga Terdekat:
                   </span>
-                  <span className="text-zinc-300">
+                  <span className="text-zinc-300 text-[9px] sm:text-[11px] whitespace-nowrap shrink-0">
                     {getTeamName(nearestMatch.home_team_id)} vs{" "}
                     {getTeamName(nearestMatch.away_team_id)}
                   </span>
-                  <span className="text-zinc-500 text-[9px] font-medium border-l border-zinc-800 pl-2">
+                  <span className="text-zinc-550 text-[8px] sm:text-[9px] font-medium border-l border-zinc-800 pl-2 whitespace-nowrap shrink-0">
                     {new Date(nearestMatch.match_date).toLocaleDateString(
                       "id-ID",
                       {
