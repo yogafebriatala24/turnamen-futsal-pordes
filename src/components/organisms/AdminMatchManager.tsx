@@ -264,6 +264,74 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
       );
       await Promise.all(updates);
 
+      // Handle suspension card resets when match status transitions to/from "finished"
+      const oldStatus = editingMatch?.status || "scheduled";
+      const newStatus = status;
+
+      if (newStatus === "finished" && oldStatus !== "finished") {
+        const teamPlayers = players.filter(
+          (p) => p.team_id === Number(homeTeamId) || p.team_id === Number(awayTeamId)
+        );
+        const resetPromises = teamPlayers.map(async (player) => {
+          const suspension = getPlayerSuspensionStatus(
+            player.id,
+            player.team_id,
+            editingMatch?.id || 0,
+            matches
+          );
+          if (suspension.isSuspended) {
+            const newY = playerYellowCards[player.id] || 0;
+            const oldY = oldPlayerYellow[String(player.id)] !== undefined ? Number(oldPlayerYellow[String(player.id)]) : 0;
+            const diffY = newY - oldY;
+
+            const newR = playerRedCards[player.id] || 0;
+            const oldR = oldPlayerRed[String(player.id)] !== undefined ? Number(oldPlayerRed[String(player.id)]) : 0;
+            const diffR = newR - oldR;
+
+            const baseYellow = Math.max(0, (player.yellow_cards || 0) + diffY);
+            const baseRed = Math.max(0, (player.red_cards || 0) + diffR);
+
+            if (suspension.reason === "red_card") {
+              await updatePlayer(player.id, { red_cards: Math.max(0, baseRed - 1) });
+            } else if (suspension.reason === "yellow_accumulation") {
+              await updatePlayer(player.id, { yellow_cards: Math.max(0, baseYellow - 2) });
+            }
+          }
+        });
+        await Promise.all(resetPromises);
+      } else if (oldStatus === "finished" && newStatus !== "finished") {
+        const teamPlayers = players.filter(
+          (p) => p.team_id === Number(homeTeamId) || p.team_id === Number(awayTeamId)
+        );
+        const restorePromises = teamPlayers.map(async (player) => {
+          const suspension = getPlayerSuspensionStatus(
+            player.id,
+            player.team_id,
+            editingMatch?.id || 0,
+            matches
+          );
+          if (suspension.isSuspended) {
+            const newY = playerYellowCards[player.id] || 0;
+            const oldY = oldPlayerYellow[String(player.id)] !== undefined ? Number(oldPlayerYellow[String(player.id)]) : 0;
+            const diffY = newY - oldY;
+
+            const newR = playerRedCards[player.id] || 0;
+            const oldR = oldPlayerRed[String(player.id)] !== undefined ? Number(oldPlayerRed[String(player.id)]) : 0;
+            const diffR = newR - oldR;
+
+            const baseYellow = Math.max(0, (player.yellow_cards || 0) + diffY);
+            const baseRed = Math.max(0, (player.red_cards || 0) + diffR);
+
+            if (suspension.reason === "red_card") {
+              await updatePlayer(player.id, { red_cards: baseRed + 1 });
+            } else if (suspension.reason === "yellow_accumulation") {
+              await updatePlayer(player.id, { yellow_cards: baseYellow + 2 });
+            }
+          }
+        });
+        await Promise.all(restorePromises);
+      }
+
       resetForm();
       onRefresh();
     } catch (err: any) {
@@ -292,22 +360,48 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         ]));
 
         const revertUpdates = uniquePlayerIds.map(async (pIdStr) => {
-          const playerId = Number(pIdStr);
-          const originalPlayer = players.find((p) => p.id === playerId);
-          if (originalPlayer) {
-            const matchG = Number(matchPlayerGoals[pIdStr] || 0);
-            const matchY = Number(matchPlayerYellow[pIdStr] || 0);
-            const matchR = Number(matchPlayerRed[pIdStr] || 0);
-            
-            await updatePlayer(playerId, {
-              goals: Math.max(0, originalPlayer.goals - matchG),
-              yellow_cards: Math.max(0, (originalPlayer.yellow_cards || 0) - matchY),
-              red_cards: Math.max(0, (originalPlayer.red_cards || 0) - matchR),
-            });
+        const playerId = Number(pIdStr);
+        const originalPlayer = players.find((p) => p.id === playerId);
+        if (originalPlayer) {
+          const matchG = Number(matchPlayerGoals[pIdStr] || 0);
+          const matchY = Number(matchPlayerYellow[pIdStr] || 0);
+          const matchR = Number(matchPlayerRed[pIdStr] || 0);
+          
+          await updatePlayer(playerId, {
+            goals: Math.max(0, originalPlayer.goals - matchG),
+            yellow_cards: Math.max(0, (originalPlayer.yellow_cards || 0) - matchY),
+            red_cards: Math.max(0, (originalPlayer.red_cards || 0) - matchR),
+          });
+        }
+      });
+      await Promise.all(revertUpdates);
+
+      // If a finished match is deleted, any served suspensions in this match are now unserved:
+      // restore card accumulation back to players
+      if (matchToDelete.status === "finished") {
+        const teamPlayers = players.filter(
+          (p) => p.team_id === matchToDelete.home_team_id || p.team_id === matchToDelete.away_team_id
+        );
+        const restoreDeletedPromises = teamPlayers.map(async (player) => {
+          const suspension = getPlayerSuspensionStatus(
+            player.id,
+            player.team_id,
+            matchToDelete.id,
+            matches
+          );
+          if (suspension.isSuspended) {
+            const currentYellow = player.yellow_cards || 0;
+            const currentRed = player.red_cards || 0;
+            if (suspension.reason === "red_card") {
+              await updatePlayer(player.id, { red_cards: currentRed + 1 });
+            } else if (suspension.reason === "yellow_accumulation") {
+              await updatePlayer(player.id, { yellow_cards: currentYellow + 2 });
+            }
           }
         });
-        await Promise.all(revertUpdates);
+        await Promise.all(restoreDeletedPromises);
       }
+    }
 
       await deleteMatch(id);
       onRefresh();
