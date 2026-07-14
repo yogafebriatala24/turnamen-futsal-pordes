@@ -73,21 +73,21 @@ export const MatchCard: React.FC<MatchCardProps> = ({
     });
   };
 
-  const getCardedPlayers = (teamId: number) => {
-    if (!players || (!match.player_yellow_cards && !match.player_red_cards)) return [];
+  const getTeamCards = (teamId: number) => {
+    if (!players || (!match.player_yellow_cards && !match.player_red_cards)) {
+      return { yellow: 0, red: 0 };
+    }
+    
+    let yellow = 0;
+    let red = 0;
     
     const teamPlayers = players.filter((p) => p.team_id === teamId);
-    const carded: { name: string; yellow: number; red: number }[] = [];
-    
     teamPlayers.forEach((player) => {
-      const yellow = Number(match.player_yellow_cards?.[String(player.id)] || 0);
-      const red = Number(match.player_red_cards?.[String(player.id)] || 0);
-      if (yellow > 0 || red > 0) {
-        carded.push({ name: player.name, yellow, red });
-      }
+      yellow += Number(match.player_yellow_cards?.[String(player.id)] || 0);
+      red += Number(match.player_red_cards?.[String(player.id)] || 0);
     });
     
-    return carded;
+    return { yellow, red };
   };
 
   // Helper to render team emblem/initials
@@ -144,26 +144,29 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           <span className="text-sm font-semibold tracking-wide truncate max-w-full text-zinc-200">
             {match.teams_home.name}
           </span>
-          {/* Carded Players for Home Team */}
-          {(match.status === "ongoing" || match.status === "finished") && (
-            <div className="mt-1 space-y-0.5 text-right w-full pr-1">
-              {getCardedPlayers(match.home_team_id).map((p, idx) => (
-                <div key={idx} className="flex items-center justify-end gap-1 text-[9px] text-zinc-550 font-medium">
-                  <span className="truncate max-w-[80px]">{p.name}</span>
-                  {p.yellow > 0 && (
-                    <span className="w-1.5 h-2 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[5px] font-black text-yellow-950 select-none">
-                      {p.yellow}
-                    </span>
-                  )}
-                  {p.red > 0 && (
-                    <span className="w-1.5 h-2 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[5px] font-black text-white select-none">
-                      {p.red}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Cards summary for Home Team */}
+          {(match.status === "ongoing" || match.status === "finished") && (() => {
+            const { yellow, red } = getTeamCards(match.home_team_id);
+            if (yellow === 0 && red === 0) return null;
+            return (
+              <div className="mt-1 flex items-center justify-center gap-0.5 flex-wrap">
+                {Array.from({ length: yellow }).map((_, i) => (
+                  <span
+                    key={`y-${i}`}
+                    className="w-1.5 h-2 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm select-none shrink-0"
+                    title="Kartu Kuning"
+                  />
+                ))}
+                {Array.from({ length: red }).map((_, i) => (
+                  <span
+                    key={`r-${i}`}
+                    className="w-1.5 h-2 bg-red-500 border border-red-650/20 rounded-[1px] shadow-sm select-none shrink-0"
+                    title="Kartu Merah"
+                  />
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         {/* VS / Score */}
@@ -191,26 +194,29 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           <span className="text-sm font-semibold tracking-wide truncate max-w-full text-zinc-200">
             {match.teams_away.name}
           </span>
-          {/* Carded Players for Away Team */}
-          {(match.status === "ongoing" || match.status === "finished") && (
-            <div className="mt-1 space-y-0.5 text-left w-full pl-1">
-              {getCardedPlayers(match.away_team_id).map((p, idx) => (
-                <div key={idx} className="flex items-center justify-start gap-1 text-[9px] text-zinc-555 font-medium">
-                  {p.yellow > 0 && (
-                    <span className="w-1.5 h-2 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[5px] font-black text-yellow-950 select-none">
-                      {p.yellow}
-                    </span>
-                  )}
-                  {p.red > 0 && (
-                    <span className="w-1.5 h-2 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[5px] font-black text-white select-none">
-                      {p.red}
-                    </span>
-                  )}
-                  <span className="truncate max-w-[80px]">{p.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Cards summary for Away Team */}
+          {(match.status === "ongoing" || match.status === "finished") && (() => {
+            const { yellow, red } = getTeamCards(match.away_team_id);
+            if (yellow === 0 && red === 0) return null;
+            return (
+              <div className="mt-1 flex items-center justify-center gap-0.5 flex-wrap">
+                {Array.from({ length: yellow }).map((_, i) => (
+                  <span
+                    key={`y-${i}`}
+                    className="w-1.5 h-2 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm select-none shrink-0"
+                    title="Kartu Kuning"
+                  />
+                ))}
+                {Array.from({ length: red }).map((_, i) => (
+                  <span
+                    key={`r-${i}`}
+                    className="w-1.5 h-2 bg-red-500 border border-red-650/20 rounded-[1px] shadow-sm select-none shrink-0"
+                    title="Kartu Merah"
+                  />
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
