@@ -44,7 +44,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </header>
 
       {/* Hero Banner / Badge */}
-      <section className="relative py-12 px-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/15 via-zinc-950 to-zinc-950 border-b border-zinc-900 overflow-hidden">
+      <section className="relative py-12 px-4 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-emerald-950/15 via-zinc-950 to-zinc-950 border-b border-zinc-900 overflow-hidden">
         <div className="max-w-3xl mx-auto text-center space-y-3 relative z-10">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase animate-pulse">
             🔥 Karang Taruna RW 03 Cup
@@ -60,7 +60,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </section>
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-5xl mx-auto w-full px-4 py-4 sm:py-8 relative z-10">
+      <main className="grow max-w-5xl mx-auto w-full px-4 py-4 sm:py-8 relative z-10">
         {children}
       </main>
 
@@ -71,7 +71,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             © {new Date().getFullYear()} Karang Taruna RW 03. All rights
             reserved.
           </p>
-          <p className="text-zinc-700 font-semibold uppercase tracking-wider text-[8px] sm:text-[9px] flex-shrink-0">
+          <p className="text-zinc-700 font-semibold uppercase tracking-wider text-[8px] sm:text-[9px] shrink-0">
             Created by &copy;{"Yoga Febriatala"}
           </p>
         </div>

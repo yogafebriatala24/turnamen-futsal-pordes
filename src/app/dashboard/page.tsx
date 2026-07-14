@@ -112,7 +112,7 @@ export default function DashboardPage() {
 
   const handleTabClick = (tabId: "teams" | "players" | "matches") => {
     if (tabId === "teams") {
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      window.history.pushState({}, document.title, window.location.pathname + window.location.search);
       setActiveSubTab("teams");
     } else {
       const tab = subTabs.find((t) => t.id === tabId);

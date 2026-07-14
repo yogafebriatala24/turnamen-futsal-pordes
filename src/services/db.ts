@@ -7,9 +7,12 @@ export interface Player {
   team_id: number;
   name: string;
   goals: number;
+  yellow_cards: number;
+  red_cards: number;
   created_at?: string;
   teams?: {
     name: string;
+    group_name?: string;
   };
 }
 
@@ -76,7 +79,7 @@ export async function deleteTeam(id: number): Promise<void> {
 export async function getPlayers(): Promise<Player[]> {
   const { data, error } = await supabase
     .from("players")
-    .select("*, teams(name)")
+    .select("*, teams(name, group_name)")
     .order("goals", { ascending: false })
     .order("name", { ascending: true });
 

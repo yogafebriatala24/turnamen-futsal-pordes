@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Match } from "../molecules/MatchCard";
 import { Team } from "../../utils/standings";
-import { createMatch, updateMatch, deleteMatch, updatePlayer, Player } from "../../services/db";
+import {
+  createMatch,
+  updateMatch,
+  deleteMatch,
+  updatePlayer,
+  Player,
+} from "../../services/db";
 import { Button } from "../atoms/Button";
 import { Input } from "../atoms/Input";
 import { Select } from "../atoms/Select";
 import { FormField } from "../molecules/FormField";
 import { ScheduleList } from "./ScheduleList";
 import { Calendar, Plus, X, Award } from "lucide-react";
+import { getPlayerSuspensionStatus } from "../../utils/suspensions";
 
 interface AdminMatchManagerProps {
   matches: Match[];
@@ -31,37 +38,80 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
   const [awayTeamId, setAwayTeamId] = useState("");
   const [homeScore, setHomeScore] = useState<string>("");
   const [awayScore, setAwayScore] = useState<string>("");
-  const [status, setStatus] = useState<"scheduled" | "ongoing" | "finished">("scheduled");
+  const [status, setStatus] = useState<"scheduled" | "ongoing" | "finished">(
+    "scheduled",
+  );
   const [matchDate, setMatchDate] = useState("");
   const [groupName, setGroupName] = useState("Grup A");
-  const [round, setRound] = useState<"Penyisihan" | "Perempat Final" | "Semi Final" | "Perebutan Juara 3" | "Final">("Penyisihan");
+  const [round, setRound] = useState<
+    | "Penyisihan"
+    | "Perempat Final"
+    | "Semi Final"
+    | "Perebutan Juara 3"
+    | "Final"
+  >("Penyisihan");
   const [error, setError] = useState("");
   const [playerGoals, setPlayerGoals] = useState<Record<number, number>>({});
+  const [playerYellowCards, setPlayerYellowCards] = useState<Record<number, number>>({});
+  const [playerRedCards, setPlayerRedCards] = useState<Record<number, number>>({});
 
-  // Sync playerGoals when homeTeamId, awayTeamId or showForm changes
+  // Sync player statistics when homeTeamId, awayTeamId or showForm changes
   useEffect(() => {
     if (showForm) {
       const newGoals: Record<number, number> = {};
-      const savedGoals = editingMatch?.player_goals || {};
+      const newYellow: Record<number, number> = {};
+      const newRed: Record<number, number> = {};
       
+      const savedGoals = editingMatch?.player_goals || {};
+      const savedYellow = editingMatch?.player_yellow_cards || {};
+      const savedRed = editingMatch?.player_red_cards || {};
+
       players.forEach((player) => {
         if (
           (homeTeamId && player.team_id === Number(homeTeamId)) ||
           (awayTeamId && player.team_id === Number(awayTeamId))
         ) {
-          // If editing, initialize from saved player_goals map, otherwise 0
           const playerIdStr = String(player.id);
-          newGoals[player.id] = savedGoals[playerIdStr] !== undefined ? Number(savedGoals[playerIdStr]) : 0;
+          newGoals[player.id] =
+            savedGoals[playerIdStr] !== undefined
+              ? Number(savedGoals[playerIdStr])
+              : 0;
+          newYellow[player.id] =
+            savedYellow[playerIdStr] !== undefined
+              ? Number(savedYellow[playerIdStr])
+              : 0;
+          newRed[player.id] =
+            savedRed[playerIdStr] !== undefined
+              ? Number(savedRed[playerIdStr])
+              : 0;
         }
       });
       setPlayerGoals(newGoals);
+      setPlayerYellowCards(newYellow);
+      setPlayerRedCards(newRed);
     } else {
       setPlayerGoals({});
+      setPlayerYellowCards({});
+      setPlayerRedCards({});
     }
   }, [homeTeamId, awayTeamId, showForm, players, editingMatch]);
 
   const adjustGoal = (playerId: number, delta: number) => {
     setPlayerGoals((prev) => ({
+      ...prev,
+      [playerId]: Math.max(0, (prev[playerId] || 0) + delta),
+    }));
+  };
+
+  const adjustYellowCard = (playerId: number, delta: number) => {
+    setPlayerYellowCards((prev) => ({
+      ...prev,
+      [playerId]: Math.max(0, (prev[playerId] || 0) + delta),
+    }));
+  };
+
+  const adjustRedCard = (playerId: number, delta: number) => {
+    setPlayerRedCards((prev) => ({
       ...prev,
       [playerId]: Math.max(0, (prev[playerId] || 0) + delta),
     }));
@@ -96,7 +146,9 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
       const date = new Date(match.match_date);
       // Adjust offset to get local time representation
       const tzOffset = date.getTimezoneOffset() * 60000;
-      const localISODate = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+      const localISODate = new Date(date.getTime() - tzOffset)
+        .toISOString()
+        .slice(0, 16);
       setMatchDate(localISODate);
     } else {
       setMatchDate("");
@@ -125,13 +177,20 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
 
     try {
       const isScheduled = status === "scheduled";
-      
-      // Build the player_goals object mapping player ID string to goals scored
+
+      // Build the player stats objects mapping player ID string to their counts
       const matchPlayerGoals: Record<string, number> = {};
+      const matchPlayerYellow: Record<string, number> = {};
+      const matchPlayerRed: Record<string, number> = {};
+      
       Object.entries(playerGoals).forEach(([pIdStr, val]) => {
-        if (val > 0) {
-          matchPlayerGoals[pIdStr] = val;
-        }
+        if (val > 0) matchPlayerGoals[pIdStr] = val;
+      });
+      Object.entries(playerYellowCards).forEach(([pIdStr, val]) => {
+        if (val > 0) matchPlayerYellow[pIdStr] = val;
+      });
+      Object.entries(playerRedCards).forEach(([pIdStr, val]) => {
+        if (val > 0) matchPlayerRed[pIdStr] = val;
       });
 
       const payload = {
@@ -144,6 +203,8 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         group_name: groupName,
         round,
         player_goals: matchPlayerGoals,
+        player_yellow_cards: matchPlayerYellow,
+        player_red_cards: matchPlayerRed,
       };
 
       if (editingMatch) {
@@ -152,21 +213,39 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         await createMatch(payload);
       }
 
-      // Update players' accumulated goals in the database based on the difference (newGoals - oldGoals)
+      // Update players' accumulated goals and cards in the database based on the difference
       const oldPlayerGoals = editingMatch?.player_goals || {};
-      const goalUpdates = Object.entries(playerGoals).map(async ([pIdStr, newGoals]) => {
-        const playerId = Number(pIdStr);
-        const originalPlayer = players.find((p) => p.id === playerId);
-        if (originalPlayer) {
-          const oldGoals = oldPlayerGoals[pIdStr] !== undefined ? Number(oldPlayerGoals[pIdStr]) : 0;
-          const diff = newGoals - oldGoals;
-          if (diff !== 0) {
-            const newGoalsTotal = Math.max(0, originalPlayer.goals + diff);
-            await updatePlayer(playerId, { goals: newGoalsTotal });
+      const oldPlayerYellow = editingMatch?.player_yellow_cards || {};
+      const oldPlayerRed = editingMatch?.player_red_cards || {};
+      
+      const updates = Object.keys({ ...playerGoals, ...playerYellowCards, ...playerRedCards }).map(
+        async (pIdStr) => {
+          const playerId = Number(pIdStr);
+          const originalPlayer = players.find((p) => p.id === playerId);
+          if (originalPlayer) {
+            const newG = playerGoals[playerId] || 0;
+            const oldG = oldPlayerGoals[pIdStr] !== undefined ? Number(oldPlayerGoals[pIdStr]) : 0;
+            const diffG = newG - oldG;
+
+            const newY = playerYellowCards[playerId] || 0;
+            const oldY = oldPlayerYellow[pIdStr] !== undefined ? Number(oldPlayerYellow[pIdStr]) : 0;
+            const diffY = newY - oldY;
+
+            const newR = playerRedCards[playerId] || 0;
+            const oldR = oldPlayerRed[pIdStr] !== undefined ? Number(oldPlayerRed[pIdStr]) : 0;
+            const diffR = newR - oldR;
+
+            if (diffG !== 0 || diffY !== 0 || diffR !== 0) {
+              await updatePlayer(playerId, {
+                goals: Math.max(0, originalPlayer.goals + diffG),
+                yellow_cards: Math.max(0, (originalPlayer.yellow_cards || 0) + diffY),
+                red_cards: Math.max(0, (originalPlayer.red_cards || 0) + diffR),
+              });
+            }
           }
         }
-      });
-      await Promise.all(goalUpdates);
+      );
+      await Promise.all(updates);
 
       resetForm();
       onRefresh();
@@ -186,17 +265,31 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
       const matchToDelete = matches.find((m) => m.id === id);
       if (matchToDelete) {
         const matchPlayerGoals = matchToDelete.player_goals || {};
+        const matchPlayerYellow = matchToDelete.player_yellow_cards || {};
+        const matchPlayerRed = matchToDelete.player_red_cards || {};
         
-        // Revert player goals concurrently by subtracting them from their accumulated totals
-        const revertGoals = Object.entries(matchPlayerGoals).map(async ([pIdStr, matchGoals]) => {
+        const uniquePlayerIds = Array.from(new Set([
+          ...Object.keys(matchPlayerGoals),
+          ...Object.keys(matchPlayerYellow),
+          ...Object.keys(matchPlayerRed)
+        ]));
+
+        const revertUpdates = uniquePlayerIds.map(async (pIdStr) => {
           const playerId = Number(pIdStr);
           const originalPlayer = players.find((p) => p.id === playerId);
-          if (originalPlayer && Number(matchGoals) > 0) {
-            const newGoalsTotal = Math.max(0, originalPlayer.goals - Number(matchGoals));
-            await updatePlayer(playerId, { goals: newGoalsTotal });
+          if (originalPlayer) {
+            const matchG = Number(matchPlayerGoals[pIdStr] || 0);
+            const matchY = Number(matchPlayerYellow[pIdStr] || 0);
+            const matchR = Number(matchPlayerRed[pIdStr] || 0);
+            
+            await updatePlayer(playerId, {
+              goals: Math.max(0, originalPlayer.goals - matchG),
+              yellow_cards: Math.max(0, (originalPlayer.yellow_cards || 0) - matchY),
+              red_cards: Math.max(0, (originalPlayer.red_cards || 0) - matchR),
+            });
           }
         });
-        await Promise.all(revertGoals);
+        await Promise.all(revertUpdates);
       }
 
       await deleteMatch(id);
@@ -238,7 +331,10 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
       {/* Header controls */}
       <div className="flex justify-between items-center bg-zinc-900/40 p-4 border border-zinc-800 rounded-2xl">
         <span className="text-sm font-semibold text-zinc-300">
-          Jumlah Pertandingan: <strong className="text-emerald-400 font-extrabold">{matches.length}</strong>
+          Jumlah Pertandingan:{" "}
+          <strong className="text-emerald-400 font-extrabold">
+            {matches.length}
+          </strong>
         </span>
         {!showForm && teams.length >= 2 && (
           <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
@@ -248,7 +344,8 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         )}
         {teams.length < 2 && (
           <span className="text-xs text-rose-450 font-semibold bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/20">
-            Daftarkan minimal 2 tim terlebih dahulu sebelum menjadwalkan pertandingan.
+            Daftarkan minimal 2 tim terlebih dahulu sebelum menjadwalkan
+            pertandingan.
           </span>
         )}
       </div>
@@ -362,44 +459,120 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                   <Award className="w-4 h-4 text-emerald-500" />
                   Pencetak Gol & Statistik Pemain (Total Gol)
                 </h4>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Team 1 Players */}
                   <div className="bg-zinc-950/40 p-4 border border-zinc-850 rounded-2xl space-y-3">
                     <h5 className="text-xs font-bold text-zinc-350 border-b border-zinc-850/60 pb-1.5 uppercase truncate">
-                      {teams.find((t) => String(t.id) === homeTeamId)?.name || "Tim 1"}
+                      {teams.find((t) => String(t.id) === homeTeamId)?.name ||
+                        "Tim 1"}
                     </h5>
-                    
-                    {players.filter((p) => p.team_id === Number(homeTeamId)).length === 0 ? (
-                      <p className="text-xs text-zinc-550 italic">Belum ada pemain terdaftar di tim ini.</p>
+
+                    {players.filter((p) => p.team_id === Number(homeTeamId))
+                      .length === 0 ? (
+                      <p className="text-xs text-zinc-550 italic">
+                        Belum ada pemain terdaftar di tim ini.
+                      </p>
                     ) : (
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                         {players
                           .filter((p) => p.team_id === Number(homeTeamId))
-                          .map((player) => (
-                            <div key={player.id} className="flex items-center justify-between py-1 border-b border-zinc-900 last:border-0">
-                              <span className="text-xs text-zinc-350 truncate max-w-[150px]">{player.name}</span>
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => adjustGoal(player.id, -1)}
-                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
-                                >
-                                  -
-                                </button>
-                                <span className="w-8 text-center text-xs font-bold text-zinc-200">
-                                  {playerGoals[player.id] !== undefined ? playerGoals[player.id] : player.goals}
+                          .map((player) => {
+                            const suspension = getPlayerSuspensionStatus(
+                              player.id,
+                              player.team_id,
+                              editingMatch?.id || 0,
+                              matches
+                            );
+                            return (
+                              <div
+                                key={player.id}
+                                className="flex items-center justify-between py-2 border-b border-zinc-900 last:border-0 gap-3"
+                              >
+                                <span className={`text-xs truncate flex-grow min-w-0 flex items-center gap-1.5 ${
+                                  suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-355"
+                                }`} title={player.name}>
+                                  <span className="truncate">{player.name}</span>
+                                  {suspension.isSuspended && (
+                                    <span className="text-[7px] font-black text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
+                                      🚫 SANKSI
+                                    </span>
+                                  )}
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={() => adjustGoal(player.id, 1)}
-                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
-                                >
-                                  +
-                                </button>
+                                <div className="flex items-center gap-4 shrink-0">
+                                  {/* Goals Input */}
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustGoal(player.id, -1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
+                                      {playerGoals[player.id] || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustGoal(player.id, 1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                  {/* Yellow Card Input */}
+                                  <div className="flex items-center gap-1">
+                                    <span className="w-2.5 h-3.5 bg-amber-400/10 border border-amber-550/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-amber-500 select-none cursor-help shrink-0" title="Kartu Kuning">🟨</span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustYellowCard(player.id, -1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
+                                      {playerYellowCards[player.id] || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustYellowCard(player.id, 1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                  {/* Red Card Input */}
+                                  <div className="flex items-center gap-1">
+                                    <span className="w-2.5 h-3.5 bg-rose-500/10 border border-rose-600/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-rose-500 select-none cursor-help shrink-0" title="Kartu Merah">🟥</span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustRedCard(player.id, -1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
+                                      {playerRedCards[player.id] || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustRedCard(player.id, 1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                       </div>
                     )}
                   </div>
@@ -407,39 +580,115 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                   {/* Team 2 Players */}
                   <div className="bg-zinc-950/40 p-4 border border-zinc-850 rounded-2xl space-y-3">
                     <h5 className="text-xs font-bold text-zinc-350 border-b border-zinc-850/60 pb-1.5 uppercase truncate">
-                      {teams.find((t) => String(t.id) === awayTeamId)?.name || "Tim 2"}
+                      {teams.find((t) => String(t.id) === awayTeamId)?.name ||
+                        "Tim 2"}
                     </h5>
-                    
-                    {players.filter((p) => p.team_id === Number(awayTeamId)).length === 0 ? (
-                      <p className="text-xs text-zinc-550 italic">Belum ada pemain terdaftar di tim ini.</p>
+
+                    {players.filter((p) => p.team_id === Number(awayTeamId))
+                      .length === 0 ? (
+                      <p className="text-xs text-zinc-550 italic">
+                        Belum ada pemain terdaftar di tim ini.
+                      </p>
                     ) : (
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                         {players
                           .filter((p) => p.team_id === Number(awayTeamId))
-                          .map((player) => (
-                            <div key={player.id} className="flex items-center justify-between py-1 border-b border-zinc-900 last:border-0">
-                              <span className="text-xs text-zinc-350 truncate max-w-[150px]">{player.name}</span>
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => adjustGoal(player.id, -1)}
-                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
-                                >
-                                  -
-                                </button>
-                                <span className="w-8 text-center text-xs font-bold text-zinc-200">
-                                  {playerGoals[player.id] !== undefined ? playerGoals[player.id] : player.goals}
+                          .map((player) => {
+                            const suspension = getPlayerSuspensionStatus(
+                              player.id,
+                              player.team_id,
+                              editingMatch?.id || 0,
+                              matches
+                            );
+                            return (
+                              <div
+                                key={player.id}
+                                className="flex items-center justify-between py-2 border-b border-zinc-900 last:border-0 gap-3"
+                              >
+                                <span className={`text-xs truncate flex-grow min-w-0 flex items-center gap-1.5 ${
+                                  suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-355"
+                                }`} title={player.name}>
+                                  <span className="truncate">{player.name}</span>
+                                  {suspension.isSuspended && (
+                                    <span className="text-[7px] font-black text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
+                                      🚫 SANKSI
+                                    </span>
+                                  )}
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={() => adjustGoal(player.id, 1)}
-                                  className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all text-xs font-bold cursor-pointer"
-                                >
-                                  +
-                                </button>
+                                <div className="flex items-center gap-4 shrink-0">
+                                  {/* Goals Input */}
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-zinc-555 font-bold uppercase select-none">Gol:</span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustGoal(player.id, -1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
+                                      {playerGoals[player.id] || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustGoal(player.id, 1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                  {/* Yellow Card Input */}
+                                  <div className="flex items-center gap-1">
+                                    <span className="w-2.5 h-3.5 bg-amber-400/10 border border-amber-550/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-amber-500 select-none cursor-help shrink-0" title="Kartu Kuning">🟨</span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustYellowCard(player.id, -1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
+                                      {playerYellowCards[player.id] || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustYellowCard(player.id, 1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-450 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                  {/* Red Card Input */}
+                                  <div className="flex items-center gap-1">
+                                    <span className="w-2.5 h-3.5 bg-rose-500/10 border border-rose-600/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-rose-500 select-none cursor-help shrink-0" title="Kartu Merah">🟥</span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustRedCard(player.id, -1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="w-5 text-center text-xs font-bold text-zinc-200">
+                                      {playerRedCards[player.id] || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={suspension.isSuspended}
+                                      onClick={() => adjustRedCard(player.id, 1)}
+                                      className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                       </div>
                     )}
                   </div>

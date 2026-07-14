@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS public.players (
     team_id INTEGER REFERENCES public.teams(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
     goals INTEGER DEFAULT 0 NOT NULL,
+    yellow_cards INTEGER DEFAULT 0 NOT NULL,
+    red_cards INTEGER DEFAULT 0 NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -28,6 +30,8 @@ CREATE TABLE IF NOT EXISTS public.matches (
     group_name TEXT DEFAULT 'Grup A' NOT NULL,
     round TEXT DEFAULT 'Penyisihan' NOT NULL CHECK (round IN ('Penyisihan', 'Perempat Final', 'Semi Final', 'Perebutan Juara 3', 'Final')),
     player_goals JSONB DEFAULT '{}'::jsonb NOT NULL,
+    player_yellow_cards JSONB DEFAULT '{}'::jsonb NOT NULL,
+    player_red_cards JSONB DEFAULT '{}'::jsonb NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

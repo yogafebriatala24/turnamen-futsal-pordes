@@ -70,10 +70,16 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const handleTabClick = (tabId: "standings" | "topscore" | "schedule" | "players") => {
+  const handleTabClick = (
+    tabId: "standings" | "topscore" | "schedule" | "players",
+  ) => {
     if (tabId === "standings") {
       // Clear hash cleanly
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      window.history.pushState(
+        {},
+        document.title,
+        window.location.pathname + window.location.search,
+      );
       setActiveTab("standings");
     } else {
       const tab = tabs.find((t) => t.id === tabId);
@@ -131,12 +137,17 @@ export default function Home() {
           const liveMatches = matches.filter((m) => m.status === "ongoing");
           const upcomingMatches = matches
             .filter((m) => m.status === "scheduled")
-            .sort((a, b) => new Date(a.match_date).getTime() - new Date(b.match_date).getTime());
+            .sort(
+              (a, b) =>
+                new Date(a.match_date).getTime() -
+                new Date(b.match_date).getTime(),
+            );
           const nearestMatch = upcomingMatches[0];
 
           if (liveMatches.length === 0 && !nearestMatch) return null;
 
-          const getTeamName = (id: number) => teams.find((t) => t.id === id)?.name || `Tim ${id}`;
+          const getTeamName = (id: number) =>
+            teams.find((t) => t.id === id)?.name || `Tim ${id}`;
 
           return (
             <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between p-3 bg-zinc-900/30 border border-zinc-900 rounded-2xl text-[10px] sm:text-xs">
@@ -147,12 +158,14 @@ export default function Home() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                   </span>
-                  <span className="uppercase tracking-wider font-extrabold text-[9px]">LIVE:</span>
+                  <span className="uppercase tracking-wider font-extrabold text-[9px]">
+                    LIVE:
+                  </span>
                   <span className="text-zinc-250 truncate">
                     {liveMatches
                       .map(
                         (m) =>
-                          `${getTeamName(m.home_team_id)} ${m.home_score ?? 0} - ${m.away_score ?? 0} ${getTeamName(m.away_team_id)}`
+                          `${getTeamName(m.home_team_id)} ${m.home_score ?? 0} - ${m.away_score ?? 0} ${getTeamName(m.away_team_id)}`,
                       )
                       .join(" | ")}
                   </span>
@@ -164,17 +177,24 @@ export default function Home() {
               {/* Right side: Nearest Match info */}
               {nearestMatch && (
                 <div className="flex items-center gap-2 text-emerald-400 font-semibold bg-emerald-500/5 px-2.5 py-1.5 rounded-xl border border-emerald-500/10 sm:self-center">
-                  <span className="uppercase tracking-wider font-extrabold text-[9px] text-emerald-500">Laga Terdekat:</span>
+                  <span className="uppercase tracking-wider font-extrabold text-[9px] text-emerald-500">
+                    Laga Terdekat:
+                  </span>
                   <span className="text-zinc-300">
-                    {getTeamName(nearestMatch.home_team_id)} vs {getTeamName(nearestMatch.away_team_id)}
+                    {getTeamName(nearestMatch.home_team_id)} vs{" "}
+                    {getTeamName(nearestMatch.away_team_id)}
                   </span>
                   <span className="text-zinc-500 text-[9px] font-medium border-l border-zinc-800 pl-2">
-                    {new Date(nearestMatch.match_date).toLocaleDateString("id-ID", {
-                      weekday: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })} WIB
+                    {new Date(nearestMatch.match_date).toLocaleDateString(
+                      "id-ID",
+                      {
+                        weekday: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      },
+                    )}{" "}
+                    WIB
                   </span>
                 </div>
               )}
@@ -184,7 +204,7 @@ export default function Home() {
 
         {/* Tab Buttons bar */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 w-full max-w-full overflow-hidden">
-          <div className="flex flex-row flex-nowrap overflow-x-auto whitespace-nowrap gap-1.5 sm:gap-3 flex-grow pr-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-row flex-nowrap overflow-x-auto whitespace-nowrap gap-1.5 sm:gap-3 grow pr-3 [-ms-overflow-style:none] [scrollbar-none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -192,7 +212,7 @@ export default function Home() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold tracking-wide uppercase border-b-2 transition-all cursor-pointer ${
+                  className={`shrink-0 flex items-center gap-1.5 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold tracking-wide uppercase border-b-2 transition-all cursor-pointer ${
                     isActive
                       ? "border-emerald-500 text-emerald-450"
                       : "border-transparent text-zinc-500 hover:text-zinc-300"
@@ -211,7 +231,7 @@ export default function Home() {
           <button
             onClick={handleRefresh}
             disabled={loading || refreshing}
-            className="flex-shrink-0 p-1.5 sm:p-2 hover:bg-zinc-900 rounded-xl border border-zinc-900 hover:border-zinc-800 transition-colors text-zinc-500 hover:text-zinc-200 cursor-pointer disabled:opacity-50 ml-2"
+            className="shrink-0 p-1.5 sm:p-2 hover:bg-zinc-900 rounded-xl border border-zinc-900 hover:border-zinc-800 transition-colors text-zinc-500 hover:text-zinc-200 cursor-pointer disabled:opacity-50 ml-2"
             title="Muat ulang data"
           >
             <RefreshCw
@@ -221,13 +241,17 @@ export default function Home() {
         </div>
 
         {/* Tab Contents */}
-        <div className="mt-4 min-h-[400px]">
+        <div className="mt-4 min-h-100">
           {activeTab === "standings" && (
             <StandingsTable standings={standings} loading={loading} />
           )}
 
           {activeTab === "schedule" && (
-            <ScheduleList matches={matches} players={players} loading={loading} />
+            <ScheduleList
+              matches={matches}
+              players={players}
+              loading={loading}
+            />
           )}
 
           {activeTab === "topscore" && (

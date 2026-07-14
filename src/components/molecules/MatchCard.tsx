@@ -13,6 +13,8 @@ export interface Match {
   group_name: string;
   round: string;
   player_goals?: Record<string, number>;
+  player_yellow_cards?: Record<string, number>;
+  player_red_cards?: Record<string, number>;
   teams_home: {
     name: string;
     logo_url?: string;

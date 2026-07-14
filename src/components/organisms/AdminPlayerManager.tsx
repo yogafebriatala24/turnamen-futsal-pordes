@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Player, createPlayer, createPlayersBulk, updatePlayer, deletePlayer } from "../../services/db";
 import { Team } from "../../utils/standings";
 import { Button } from "../atoms/Button";
@@ -27,13 +27,38 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
   const [namesInput, setNamesInput] = useState("");
   const [teamId, setTeamId] = useState<string>("");
   const [goals, setGoals] = useState<number>(0);
+  const [yellowCards, setYellowCards] = useState<number>(0);
+  const [redCards, setRedCards] = useState<number>(0);
   const [error, setError] = useState("");
+
+  // Search and Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTeamId, setSelectedTeamId] = useState("all");
+
+  const filterTeamOptions = useMemo(() => {
+    return [
+      { value: "all", label: "Semua Tim" },
+      ...teams.map((t) => ({ value: String(t.id), label: `${t.name} (${t.group_name})` })),
+    ];
+  }, [teams]);
+
+  const filteredPlayers = useMemo(() => {
+    return players.filter((player) => {
+      const matchesName = player.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTeam =
+        selectedTeamId === "all" ||
+        String(player.team_id) === selectedTeamId;
+      return matchesName && matchesTeam;
+    });
+  }, [players, searchQuery, selectedTeamId]);
 
   const resetForm = () => {
     setName("");
     setNamesInput("");
     setTeamId("");
     setGoals(0);
+    setYellowCards(0);
+    setRedCards(0);
     setEditingPlayer(null);
     setShowForm(false);
     setError("");
@@ -44,6 +69,8 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
     setName(player.name);
     setTeamId(String(player.team_id));
     setGoals(player.goals);
+    setYellowCards(player.yellow_cards || 0);
+    setRedCards(player.red_cards || 0);
     setShowForm(true);
   };
 
@@ -68,6 +95,8 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
           name: name.trim(),
           team_id: Number(teamId),
           goals: Number(goals),
+          yellow_cards: Number(yellowCards),
+          red_cards: Number(redCards),
         };
         await updatePlayer(editingPlayer.id, payload);
       } else {
@@ -91,6 +120,8 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
           name: pName,
           team_id: Number(teamId),
           goals: Number(goals),
+          yellow_cards: Number(yellowCards),
+          red_cards: Number(redCards),
         }));
 
         await createPlayersBulk(payloads);
@@ -164,10 +195,10 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {editingPlayer ? (
                 <>
-                  <FormField label="Nama Pemain" required className="md:col-span-1">
+                  <FormField label="Nama Pemain" required className="md:col-span-2">
                     <Input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -193,16 +224,35 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
                       onChange={(e) => setGoals(Number(e.target.value))}
                     />
                   </FormField>
+
+                  <div className="md:col-span-1 grid grid-cols-2 gap-2">
+                    <FormField label="K. Kuning" required>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={yellowCards}
+                        onChange={(e) => setYellowCards(Number(e.target.value))}
+                      />
+                    </FormField>
+                    <FormField label="K. Merah" required>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={redCards}
+                        onChange={(e) => setRedCards(Number(e.target.value))}
+                      />
+                    </FormField>
+                  </div>
                 </>
               ) : (
                 <>
-                  <FormField label="Nama-nama Pemain (Pisahkan dengan koma atau baris baru)" required className="md:col-span-3">
+                  <FormField label="Nama-nama Pemain (Pisahkan dengan koma atau baris baru)" required className="md:col-span-5">
                     <textarea
                       value={namesInput}
                       onChange={(e) => setNamesInput(e.target.value)}
                       placeholder="Contoh:&#10;Andi Wijaya&#10;Budi Santoso, Candra Kirana&#10;Dedi Kurniawan"
                       rows={4}
-                      className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl text-zinc-100 placeholder-zinc-500 text-sm transition-all duration-200 outline-none focus:ring-4"
+                      className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl text-zinc-100 placeholder-zinc-550 text-sm transition-all duration-200 outline-none focus:ring-4"
                       autoFocus
                     />
                   </FormField>
@@ -216,7 +266,7 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
                     />
                   </FormField>
 
-                  <FormField label="Jumlah Gol Awal" required className="md:col-span-1">
+                  <FormField label="Gol Awal" required className="md:col-span-1">
                     <Input
                       type="number"
                       min="0"
@@ -224,6 +274,25 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
                       onChange={(e) => setGoals(Number(e.target.value))}
                     />
                   </FormField>
+
+                  <div className="md:col-span-2 grid grid-cols-2 gap-2">
+                    <FormField label="K. Kuning Awal" required>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={yellowCards}
+                        onChange={(e) => setYellowCards(Number(e.target.value))}
+                      />
+                    </FormField>
+                    <FormField label="K. Merah Awal" required>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={redCards}
+                        onChange={(e) => setRedCards(Number(e.target.value))}
+                      />
+                    </FormField>
+                  </div>
                 </>
               )}
             </div>
@@ -240,6 +309,32 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
         </div>
       )}
 
+      {/* Search & Filter Panel */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-zinc-900/40 p-4 border border-zinc-800 rounded-2xl">
+        <div className="sm:col-span-2">
+          <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider block mb-1.5">
+            Cari Nama Pemain
+          </label>
+          <Input
+            type="text"
+            placeholder="Cari nama pemain..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider block mb-1.5">
+            Filter Tim
+          </label>
+          <Select
+            value={selectedTeamId}
+            onChange={(e) => setSelectedTeamId(e.target.value)}
+            options={filterTeamOptions}
+            placeholder="Pilih Tim"
+          />
+        </div>
+      </div>
+
       {/* Players List Table / Grid */}
       <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
@@ -254,20 +349,40 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-850/50 text-sm text-zinc-300">
-              {players.length === 0 ? (
+              {filteredPlayers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 px-4 text-center text-zinc-550">
-                    Belum ada data pemain terdaftar.
+                    {players.length === 0 ? "Belum ada data pemain terdaftar." : "Pemain tidak ditemukan dengan filter ini."}
                   </td>
                 </tr>
               ) : (
-                players.map((player, index) => (
+                filteredPlayers.map((player, index) => (
                   <tr key={player.id} className="hover:bg-zinc-800/15">
                     <td className="py-3.5 px-4 text-center text-zinc-500 font-semibold">
                       {index + 1}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-zinc-200">
-                      {player.name}
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">{player.name}</span>
+                        <div className="flex gap-1 shrink-0">
+                          {player.yellow_cards > 0 && (
+                            <div
+                              className="w-2.5 h-3.5 bg-yellow-400 border border-yellow-500/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-yellow-950 select-none"
+                              title={`${player.yellow_cards} Kartu Kuning`}
+                            >
+                              {player.yellow_cards}
+                            </div>
+                          )}
+                          {player.red_cards > 0 && (
+                            <div
+                              className="w-2.5 h-3.5 bg-red-500 border border-red-600/20 rounded-[2px] shadow-sm flex items-center justify-center text-[8px] font-black text-white select-none"
+                              title={`${player.red_cards} Kartu Merah`}
+                            >
+                              {player.red_cards}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-zinc-400">
                       {player.teams?.name || "Tanpa Tim"}

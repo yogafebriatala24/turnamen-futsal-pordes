@@ -29,7 +29,10 @@ export const Select: React.FC<SelectProps> = ({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -41,11 +44,13 @@ export const Select: React.FC<SelectProps> = ({
 
   // Filter options based on search query
   const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+    opt.label.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Get current selected label
-  const selectedOption = options.find((opt) => String(opt.value) === String(value));
+  const selectedOption = options.find(
+    (opt) => String(opt.value) === String(value),
+  );
 
   const handleSelect = (optionValue: string | number) => {
     if (onChange) {
@@ -62,7 +67,10 @@ export const Select: React.FC<SelectProps> = ({
   };
 
   return (
-    <div className={`relative w-full ${isOpen ? "z-30" : "z-10"} ${className}`} ref={dropdownRef}>
+    <div
+      className={`relative w-full ${isOpen ? "z-30" : "z-10"} ${className}`}
+      ref={dropdownRef}
+    >
       {/* Trigger Button */}
       <button
         type="button"
@@ -74,10 +82,16 @@ export const Select: React.FC<SelectProps> = ({
             : "border-zinc-800 focus:border-emerald-500 focus:ring-emerald-500/20"
         } rounded-xl text-zinc-150 text-sm transition-all duration-200 outline-none focus:ring-4 cursor-pointer text-left disabled:opacity-50 disabled:cursor-not-allowed`}
       >
-        <span className={selectedOption ? "text-zinc-200 font-medium" : "text-zinc-550"}>
+        <span
+          className={
+            selectedOption ? "text-zinc-200 font-medium" : "text-zinc-550"
+          }
+        >
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-emerald-500" : ""}`} />
+        <ChevronDown
+          className={`w-4 h-4 text-zinc-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-emerald-500" : ""}`}
+        />
       </button>
 
       {/* Dropdown Panel */}
@@ -85,7 +99,7 @@ export const Select: React.FC<SelectProps> = ({
         <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
           {/* Search Input Bar */}
           <div className="p-2 border-b border-zinc-800 flex items-center gap-2 bg-zinc-950/40">
-            <Search className="w-4 h-4 text-zinc-550 flex-shrink-0 ml-1.5" />
+            <Search className="w-4 h-4 text-zinc-550 shrink-0 ml-1.5" />
             <input
               type="text"
               value={searchQuery}
@@ -117,7 +131,9 @@ export const Select: React.FC<SelectProps> = ({
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-emerald-500" />}
+                    {isSelected && (
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    )}
                   </button>
                 );
               })

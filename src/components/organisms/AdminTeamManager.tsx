@@ -77,7 +77,11 @@ export const AdminTeamManager: React.FC<AdminTeamManagerProps> = ({
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus tim ini? Semua pemain dan pertandingan terkait akan terhapus.")) {
+    if (
+      !confirm(
+        "Apakah Anda yakin ingin menghapus tim ini? Semua pemain dan pertandingan terkait akan terhapus.",
+      )
+    ) {
       return;
     }
 
@@ -102,7 +106,10 @@ export const AdminTeamManager: React.FC<AdminTeamManagerProps> = ({
       {/* Header controls */}
       <div className="flex justify-between items-center bg-zinc-900/40 p-4 border border-zinc-800 rounded-2xl">
         <span className="text-sm font-semibold text-zinc-300">
-          Jumlah Tim Terdaftar: <strong className="text-emerald-400 font-extrabold">{teams.length}</strong>
+          Jumlah Tim Terdaftar:{" "}
+          <strong className="text-emerald-400 font-extrabold">
+            {teams.length}
+          </strong>
         </span>
         {!showForm && (
           <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
@@ -193,14 +200,16 @@ export const AdminTeamManager: React.FC<AdminTeamManagerProps> = ({
                 </div>
               )}
               <div className="min-w-0">
-                <h4 className="font-bold text-zinc-200 text-sm truncate">{team.name}</h4>
+                <h4 className="font-bold text-zinc-200 text-sm truncate">
+                  {team.name}
+                </h4>
                 <span className="text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded mt-1 inline-block">
                   {team.group_name}
                 </span>
               </div>
             </div>
 
-            <div className="flex gap-1.5 flex-shrink-0">
+            <div className="flex gap-1.5 shrink-0">
               <button
                 onClick={() => handleEdit(team)}
                 className="p-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 rounded-xl cursor-pointer transition-colors"

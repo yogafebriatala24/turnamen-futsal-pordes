@@ -3,6 +3,7 @@ import { Match, MatchCard } from "../molecules/MatchCard";
 import { Select } from "../atoms/Select";
 import { Calendar, Filter, Users, X, Clock, Shield } from "lucide-react";
 import { Player } from "../../services/db";
+import { getPlayerSuspensionStatus } from "../../utils/suspensions";
 
 interface ScheduleListProps {
   matches: Match[];
@@ -23,7 +24,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
 }) => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roundFilter, setRoundFilter] = useState<string>("all");
-  const [selectedMatchForDetail, setSelectedMatchForDetail] = useState<Match | null>(null);
+  const [selectedMatchForDetail, setSelectedMatchForDetail] =
+    useState<Match | null>(null);
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
@@ -108,9 +110,13 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
       // If same status:
       // Recently finished matches first, but live and scheduled matches earliest first
       if (a.status === "finished") {
-        return new Date(b.match_date).getTime() - new Date(a.match_date).getTime();
+        return (
+          new Date(b.match_date).getTime() - new Date(a.match_date).getTime()
+        );
       }
-      return new Date(a.match_date).getTime() - new Date(b.match_date).getTime();
+      return (
+        new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
+      );
     });
   }, [filteredMatches]);
 
@@ -228,7 +234,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                     className="w-12 h-12 object-contain rounded-full bg-zinc-800 p-1"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-zinc-850 border border-zinc-750 flex items-center justify-center font-bold text-emerald-405 text-sm tracking-wider flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-zinc-850 border border-zinc-750 flex items-center justify-center font-bold text-emerald-405 text-sm tracking-wider shrink-0">
                     {selectedMatchForDetail.teams_home.name
                       .split(" ")
                       .map((w) => w[0])
@@ -270,7 +276,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                     className="w-12 h-12 object-contain rounded-full bg-zinc-800 p-1"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-zinc-850 border border-zinc-750 flex items-center justify-center font-bold text-emerald-450 text-sm tracking-wider flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-zinc-850 border border-zinc-750 flex items-center justify-center font-bold text-emerald-450 text-sm tracking-wider shrink-0">
                     {selectedMatchForDetail.teams_away.name
                       .split(" ")
                       .map((w) => w[0])
@@ -310,22 +316,68 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                   <h5 className="text-[10px] font-extrabold text-zinc-350 border-b border-zinc-850 pb-1.5 uppercase truncate">
                     {selectedMatchForDetail.teams_home.name}
                   </h5>
-                  {players.filter((p) => p.team_id === selectedMatchForDetail.home_team_id).length === 0 ? (
-                    <p className="text-[10px] text-zinc-650 italic">Belum ada pemain.</p>
+                  {players.filter(
+                    (p) => p.team_id === selectedMatchForDetail.home_team_id,
+                  ).length === 0 ? (
+                    <p className="text-[10px] text-zinc-650 italic">
+                      Belum ada pemain.
+                    </p>
                   ) : (
                     <ul className="space-y-1 max-h-40 overflow-y-auto pr-1 divide-y divide-zinc-900/40">
                       {players
-                        .filter((p) => p.team_id === selectedMatchForDetail.home_team_id)
-                        .map((player) => (
-                          <li key={player.id} className="text-xs text-zinc-300 flex items-center justify-between py-1">
-                            <span className="truncate max-w-[110px] font-medium text-zinc-200">{player.name}</span>
-                            {player.goals > 0 && (
-                              <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
-                                {player.goals} Gol
+                        .filter(
+                          (p) =>
+                            p.team_id === selectedMatchForDetail.home_team_id,
+                        )
+                        .map((player) => {
+                          const suspension = getPlayerSuspensionStatus(
+                            player.id,
+                            player.team_id,
+                            selectedMatchForDetail.id,
+                            matches
+                          );
+                          return (
+                            <li
+                              key={player.id}
+                              className="text-xs text-zinc-300 flex items-center justify-between py-1"
+                            >
+                              <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 min-w-0 ${
+                                suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-200"
+                              }`}>
+                                <span className="truncate">{player.name}</span>
+                                <span className="flex gap-0.5 shrink-0">
+                                  {player.yellow_cards > 0 && (
+                                    <span
+                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-950 select-none"
+                                      title={`${player.yellow_cards} Kartu Kuning`}
+                                    >
+                                      {player.yellow_cards}
+                                    </span>
+                                  )}
+                                  {player.red_cards > 0 && (
+                                    <span
+                                      className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
+                                      title={`${player.red_cards} Kartu Merah`}
+                                    >
+                                      {player.red_cards}
+                                    </span>
+                                  )}
+                                </span>
                               </span>
-                            )}
-                          </li>
-                        ))}
+                              {suspension.isSuspended ? (
+                                <span className="text-[7px] font-extrabold text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
+                                  SANKSI
+                                </span>
+                              ) : (
+                                player.goals > 0 && (
+                                  <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                                    {player.goals} Gol
+                                  </span>
+                                )
+                              )}
+                            </li>
+                          );
+                        })}
                     </ul>
                   )}
                 </div>
@@ -335,22 +387,68 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                   <h5 className="text-[10px] font-extrabold text-zinc-350 border-b border-zinc-850 pb-1.5 uppercase truncate">
                     {selectedMatchForDetail.teams_away.name}
                   </h5>
-                  {players.filter((p) => p.team_id === selectedMatchForDetail.away_team_id).length === 0 ? (
-                    <p className="text-[10px] text-zinc-650 italic">Belum ada pemain.</p>
+                  {players.filter(
+                    (p) => p.team_id === selectedMatchForDetail.away_team_id,
+                  ).length === 0 ? (
+                    <p className="text-[10px] text-zinc-650 italic">
+                      Belum ada pemain.
+                    </p>
                   ) : (
                     <ul className="space-y-1 max-h-40 overflow-y-auto pr-1 divide-y divide-zinc-900/40">
                       {players
-                        .filter((p) => p.team_id === selectedMatchForDetail.away_team_id)
-                        .map((player) => (
-                          <li key={player.id} className="text-xs text-zinc-300 flex items-center justify-between py-1">
-                            <span className="truncate max-w-[110px] font-medium text-zinc-200">{player.name}</span>
-                            {player.goals > 0 && (
-                              <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
-                                {player.goals} Gol
+                        .filter(
+                          (p) =>
+                            p.team_id === selectedMatchForDetail.away_team_id,
+                        )
+                        .map((player) => {
+                          const suspension = getPlayerSuspensionStatus(
+                            player.id,
+                            player.team_id,
+                            selectedMatchForDetail.id,
+                            matches
+                          );
+                          return (
+                            <li
+                              key={player.id}
+                              className="text-xs text-zinc-300 flex items-center justify-between py-1"
+                            >
+                              <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 min-w-0 ${
+                                suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-200"
+                              }`}>
+                                <span className="truncate">{player.name}</span>
+                                <span className="flex gap-0.5 shrink-0">
+                                  {player.yellow_cards > 0 && (
+                                    <span
+                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-950 select-none"
+                                      title={`${player.yellow_cards} Kartu Kuning`}
+                                    >
+                                      {player.yellow_cards}
+                                    </span>
+                                  )}
+                                  {player.red_cards > 0 && (
+                                    <span
+                                      className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
+                                      title={`${player.red_cards} Kartu Merah`}
+                                    >
+                                      {player.red_cards}
+                                    </span>
+                                  )}
+                                </span>
                               </span>
-                            )}
-                          </li>
-                        ))}
+                              {suspension.isSuspended ? (
+                                <span className="text-[7px] font-extrabold text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
+                                  SANKSI
+                                </span>
+                              ) : (
+                                player.goals > 0 && (
+                                  <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                                    {player.goals} Gol
+                                  </span>
+                                )
+                              )}
+                            </li>
+                          );
+                        })}
                     </ul>
                   )}
                 </div>
