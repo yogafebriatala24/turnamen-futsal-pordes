@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { Match, MatchCard } from "../molecules/MatchCard";
+import { MatchCard } from "../molecules/MatchCard";
+import type { Match } from "../molecules/MatchCard";
 import { Select } from "../atoms/Select";
 import { Calendar, Filter, Users, X, Clock, Shield } from "lucide-react";
 import { Player } from "../../services/db";

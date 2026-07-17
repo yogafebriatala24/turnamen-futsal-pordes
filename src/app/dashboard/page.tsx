@@ -8,7 +8,7 @@ import { AdminTeamManager } from "../../components/organisms/AdminTeamManager";
 import { AdminPlayerManager } from "../../components/organisms/AdminPlayerManager";
 import { AdminMatchManager } from "../../components/organisms/AdminMatchManager";
 import { getTeams, getPlayers, getMatches, Player } from "../../services/db";
-import { Match } from "../../components/molecules/MatchCard";
+import type { Match } from "../../components/molecules/MatchCard";
 import { Team } from "../../utils/standings";
 import { Button } from "../../components/atoms/Button";
 import { Spinner } from "../../components/atoms/Spinner";

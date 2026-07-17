@@ -1,5 +1,5 @@
 import { supabase } from "../libs/supabase";
-import { Match } from "../components/molecules/MatchCard";
+import type { Match } from "../components/molecules/MatchCard";
 import { Team } from "../utils/standings";
 
 export interface Player {

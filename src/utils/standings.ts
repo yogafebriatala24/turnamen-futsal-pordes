@@ -1,4 +1,4 @@
-import { Match } from "../components/molecules/MatchCard";
+import type { Match } from "../components/molecules/MatchCard";
 
 export interface Team {
   id: number;

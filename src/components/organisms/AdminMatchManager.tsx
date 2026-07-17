@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Match } from "../molecules/MatchCard";
+import type { Match } from "../molecules/MatchCard";
 import { Team } from "../../utils/standings";
 import {
   createMatch,

@@ -8,7 +8,7 @@ import { ScheduleList } from "../components/organisms/ScheduleList";
 import { PlayerList } from "../components/organisms/PlayerList";
 import { RulesSection } from "../components/organisms/RulesSection";
 import { getTeams, getPlayers, getMatches, Player } from "../services/db";
-import { Match } from "../components/molecules/MatchCard";
+import type { Match } from "../components/molecules/MatchCard";
 import { Team, calculateStandings, StandingRow } from "../utils/standings";
 import { Trophy, Calendar, Award, RefreshCw, Users, BookOpen } from "lucide-react";
 
