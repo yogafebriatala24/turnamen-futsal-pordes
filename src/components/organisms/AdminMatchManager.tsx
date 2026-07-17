@@ -172,6 +172,8 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
     }
 
     setShowForm(true);
+    // Scroll smoothly to top so the edit form is visible to the admin
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -859,6 +861,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         </h4>
         <ScheduleList
           matches={matches}
+          players={players}
           isAdmin={true}
           onEdit={handleEdit}
           onDelete={handleDeleteMatch}

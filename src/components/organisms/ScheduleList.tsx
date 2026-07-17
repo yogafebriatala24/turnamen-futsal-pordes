@@ -2,9 +2,10 @@ import React, { useState, useMemo } from "react";
 import { MatchCard } from "../molecules/MatchCard";
 import type { Match } from "../molecules/MatchCard";
 import { Select } from "../atoms/Select";
-import { Calendar, Filter, Users, X, Clock, Shield } from "lucide-react";
+import { Calendar, Filter, Users, X, Clock, Shield, Download } from "lucide-react";
 import { Player } from "../../services/db";
 import { getPlayerSuspensionStatus } from "../../utils/suspensions";
+import { downloadDayScheduleImage } from "../../utils/imageGenerator";
 
 interface ScheduleListProps {
   matches: Match[];
@@ -215,14 +216,25 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
         <div className="space-y-8 animate-in fade-in duration-300">
           {groupedMatches.map(({ dateKey, matches: dayMatches }) => (
             <div key={dateKey} className="space-y-4">
-              <div className="flex items-center gap-2.5 pb-2 border-b border-zinc-800/80">
-                <div className="w-1.5 h-6 bg-emerald-500 rounded-full animate-pulse" />
-                <h3 className="text-sm sm:text-base font-black text-zinc-200 tracking-wide capitalize">
-                  {formatHeaderDate(dateKey)}
-                </h3>
-                <span className="text-[10px] sm:text-xs font-bold text-emerald-450 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15">
-                  {dayMatches.length} Laga
-                </span>
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-800/80 gap-4">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-1.5 h-6 bg-emerald-500 rounded-full animate-pulse shrink-0" />
+                  <h3 className="text-sm sm:text-base font-black text-zinc-200 tracking-wide capitalize truncate">
+                    {formatHeaderDate(dateKey)}
+                  </h3>
+                  <span className="text-[10px] sm:text-xs font-bold text-emerald-450 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15 shrink-0">
+                    {dayMatches.length} Laga
+                  </span>
+                </div>
+                
+                <button
+                  onClick={() => downloadDayScheduleImage(dateKey, dayMatches)}
+                  className="shrink-0 px-2.5 py-1 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white text-[10px] sm:text-xs font-bold rounded-lg border border-zinc-750 transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                  title="Download Poster Jadwal Hari Ini"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">Download Poster</span>
+                </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {dayMatches.map((match) => (
