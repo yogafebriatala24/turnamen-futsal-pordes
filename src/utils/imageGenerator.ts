@@ -1,4 +1,4 @@
-import { Match } from "../components/molecules/MatchCard";
+import type { Match } from "../components/molecules/MatchCard";
 
 export const downloadMatchImage = (
   match: Match,
@@ -262,10 +262,11 @@ export const downloadMatchImage = (
 
     // Draw badge background
     ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 16);
+    const anyCtx = ctx as any;
+    if (anyCtx.roundRect) {
+      anyCtx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 16);
     } else {
-      ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+      anyCtx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
     }
     ctx.fill();
 
@@ -288,10 +289,11 @@ export const downloadMatchImage = (
     // Draw white rounded box
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
+    const anyCtx2 = ctx as any;
+    if (anyCtx2.roundRect) {
+      anyCtx2.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
     } else {
-      ctx.rect(boxX, boxY, boxWidth, boxHeight);
+      anyCtx2.rect(boxX, boxY, boxWidth, boxHeight);
     }
     ctx.fill();
 
