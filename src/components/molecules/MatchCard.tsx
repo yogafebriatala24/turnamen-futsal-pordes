@@ -1,7 +1,8 @@
 import React from "react";
-import { Calendar, Clock, Trophy } from "lucide-react";
+import { Calendar, Clock, Trophy, Download, Share2 } from "lucide-react";
 import { Badge } from "../atoms/Badge";
 import { Player } from "../../services/db";
+import { downloadMatchImage } from "../../utils/imageGenerator";
 
 export interface Match {
   id: number;
@@ -71,6 +72,33 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       minute: "2-digit",
       hour12: false,
     });
+  };
+
+  const shareToWhatsApp = () => {
+    const homeScore = match.home_score !== null ? match.home_score : "?";
+    const awayScore = match.away_score !== null ? match.away_score : "?";
+    const scoreText = match.status !== "scheduled" 
+      ? `Skor: *${homeScore} - ${awayScore}*`
+      : "Status: *Mendatang*";
+
+    const text = `🏆 *TURNAMEN FUTSAL KARANG TARUNA RW 03* 🏆
+Desa Padurenan
+
+🔥 *INFO PERTANDINGAN* 🔥
+Babak: *${match.round}* (${match.group_name})
+
+⚔️ *${match.teams_home.name}* vs *${match.teams_away.name}*
+${scoreText}
+
+📅 Hari/Tanggal: ${formatDate(match.match_date)}
+⏰ Waktu: ${formatTime(match.match_date)} WIB
+
+Lihat detail pertandingan dan klasemen selengkapnya di:
+${window.location.origin}/#jadwal`;
+
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+    window.open(whatsappUrl, "_blank");
   };
 
   const getTeamCards = (teamId: number) => {
@@ -233,14 +261,36 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           </div>
         </div>
 
-        {onClick && (
-          <button
-            onClick={onClick}
-            className="w-full sm:w-auto justify-center sm:justify-start px-4 py-2 sm:px-3.5 sm:py-1.5 bg-emerald-600 sm:bg-zinc-800/60 hover:bg-emerald-500 sm:hover:bg-zinc-850 text-white sm:text-emerald-450 sm:hover:text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/20 sm:border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1 shadow-lg shadow-emerald-900/10 sm:shadow-none"
-          >
-            Detail
-          </button>
-        )}
+        <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:gap-2 sm:w-auto">
+          {onClick && (
+            <button
+              onClick={onClick}
+              className="w-full sm:w-auto justify-center sm:justify-start px-4 py-2 sm:px-3.5 sm:py-1.5 bg-emerald-600 sm:bg-zinc-800/60 hover:bg-emerald-500 sm:hover:bg-zinc-850 text-white sm:text-emerald-450 sm:hover:text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/20 sm:border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1 shadow-lg shadow-emerald-900/10 sm:shadow-none"
+            >
+              Detail
+            </button>
+          )}
+
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+            <button
+              onClick={() => downloadMatchImage(match)}
+              className="w-full sm:w-auto justify-center sm:justify-start px-4 py-2 sm:px-3.5 sm:py-1.5 bg-zinc-800/60 hover:bg-zinc-850 text-zinc-300 hover:text-white text-xs font-bold rounded-xl border border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+              title="Download Info Pertandingan"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download</span>
+            </button>
+
+            <button
+              onClick={shareToWhatsApp}
+              className="w-full sm:w-auto justify-center sm:justify-start px-4 py-2 sm:px-3.5 sm:py-1.5 bg-zinc-800/60 hover:bg-zinc-850 text-zinc-300 hover:text-white text-xs font-bold rounded-xl border border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+              title="Bagikan ke WhatsApp Status"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Bagikan</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Admin Actions overlay/footer */}
