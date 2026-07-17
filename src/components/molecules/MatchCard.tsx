@@ -221,7 +221,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       </div>
 
       {/* Footer Schedule Details */}
-      <div className="mt-4 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
+      <div className="mt-4 pt-3 border-t border-zinc-800/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 text-xs text-zinc-500">
         <div className="flex flex-col gap-1 text-[11px] sm:text-xs">
           <div className="flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5 text-zinc-650" />
@@ -236,7 +236,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         {onClick && (
           <button
             onClick={onClick}
-            className="px-3.5 py-1.5 bg-zinc-800/60 hover:bg-zinc-850 text-emerald-450 hover:text-emerald-400 text-xs font-bold rounded-xl border border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+            className="w-full sm:w-auto justify-center sm:justify-start px-4 py-2 sm:px-3.5 sm:py-1.5 bg-emerald-600 sm:bg-zinc-800/60 hover:bg-emerald-500 sm:hover:bg-zinc-850 text-white sm:text-emerald-450 sm:hover:text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/20 sm:border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1 shadow-lg shadow-emerald-900/10 sm:shadow-none"
           >
             Detail
           </button>

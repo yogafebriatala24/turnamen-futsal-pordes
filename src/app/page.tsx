@@ -6,14 +6,15 @@ import { StandingsTable } from "../components/organisms/StandingsTable";
 import { TopScoreList } from "../components/organisms/TopScoreList";
 import { ScheduleList } from "../components/organisms/ScheduleList";
 import { PlayerList } from "../components/organisms/PlayerList";
+import { RulesSection } from "../components/organisms/RulesSection";
 import { getTeams, getPlayers, getMatches, Player } from "../services/db";
 import { Match } from "../components/molecules/MatchCard";
 import { Team, calculateStandings, StandingRow } from "../utils/standings";
-import { Trophy, Calendar, Award, RefreshCw, Users } from "lucide-react";
+import { Trophy, Calendar, Award, RefreshCw, Users, BookOpen } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
-    "standings" | "topscore" | "schedule" | "players"
+    "standings" | "topscore" | "schedule" | "players" | "rules"
   >("standings");
 
   // Synchronize activeTab state with URL hash
@@ -26,6 +27,8 @@ export default function Home() {
         setActiveTab("topscore");
       } else if (hash === "#pemain") {
         setActiveTab("players");
+      } else if (hash === "#peraturan" || hash === "#Peraturan") {
+        setActiveTab("rules");
       } else {
         setActiveTab("standings");
       }
@@ -71,7 +74,7 @@ export default function Home() {
   }, []);
 
   const handleTabClick = (
-    tabId: "standings" | "topscore" | "schedule" | "players",
+    tabId: "standings" | "topscore" | "schedule" | "players" | "rules",
   ) => {
     if (tabId === "standings") {
       // Clear hash cleanly
@@ -126,6 +129,13 @@ export default function Home() {
       mobileLabel: "Pemain",
       hash: "pemain",
       icon: Users,
+    },
+    {
+      id: "rules",
+      label: "Aturan",
+      mobileLabel: "Aturan",
+      hash: "Peraturan",
+      icon: BookOpen,
     },
   ] as const;
 
@@ -263,6 +273,10 @@ export default function Home() {
 
           {activeTab === "players" && (
             <PlayerList players={players} teams={teams} loading={loading} />
+          )}
+
+          {activeTab === "rules" && (
+            <RulesSection />
           )}
         </div>
       </div>
