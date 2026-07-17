@@ -1,13 +1,15 @@
 import type { Match } from "../components/molecules/MatchCard";
+import type { Player } from "../services/db";
 
 export const downloadMatchImage = (
   match: Match,
+  players: Player[],
   action: "download" | "share" = "download",
   shareText?: string,
 ) => {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
-  canvas.height = 1080;
+  canvas.height = 1920; // 9:16 Instagram Status aspect ratio
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
@@ -15,44 +17,44 @@ export const downloadMatchImage = (
   const hutLogo = new Image();
 
   // 1. Draw Background Gradient
-  const grad = ctx.createRadialGradient(540, 540, 100, 540, 540, 800);
+  const grad = ctx.createRadialGradient(540, 960, 100, 540, 960, 1000);
   grad.addColorStop(0, "#022c22"); // dark emerald-950
   grad.addColorStop(0.6, "#09090b"); // zinc-950
-  grad.addColorStop(1, "#030712"); // gray-950
+  grad.addColorStop(1, "#030712"); // slate-950
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 1080, 1080);
+  ctx.fillRect(0, 0, 1080, 1920);
 
   // 2. Draw Futsal/Soccer Pitch lines as background decoration
   ctx.strokeStyle = "rgba(16, 185, 129, 0.08)";
   ctx.lineWidth = 4;
   // Border line
-  ctx.strokeRect(60, 60, 960, 960);
+  ctx.strokeRect(60, 60, 960, 1800);
 
   // Center line
   ctx.beginPath();
-  ctx.moveTo(60, 540);
-  ctx.lineTo(1020, 540);
+  ctx.moveTo(60, 960);
+  ctx.lineTo(1020, 960);
   ctx.stroke();
 
   // Center circle
   ctx.beginPath();
-  ctx.arc(540, 540, 160, 0, Math.PI * 2);
+  ctx.arc(540, 960, 180, 0, Math.PI * 2);
   ctx.stroke();
 
   // Center spot
   ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
   ctx.beginPath();
-  ctx.arc(540, 540, 12, 0, Math.PI * 2);
+  ctx.arc(540, 960, 12, 0, Math.PI * 2);
   ctx.fill();
 
   // Penalty areas
   // Top
   ctx.beginPath();
-  ctx.arc(540, 60, 180, 0, Math.PI);
+  ctx.arc(540, 60, 200, 0, Math.PI);
   ctx.stroke();
   // Bottom
   ctx.beginPath();
-  ctx.arc(540, 1020, 180, Math.PI, 0);
+  ctx.arc(540, 1860, 200, Math.PI, 0);
   ctx.stroke();
 
   // 3. Draw Header Text
@@ -61,20 +63,20 @@ export const downloadMatchImage = (
 
   // Tournament Title
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 25px system-ui, -apple-system, sans-serif";
-  ctx.fillText("TURNAMEN FUTSAL KARANG TARUNA RW 03", 540, 130);
+  ctx.font = "bold 27px system-ui, -apple-system, sans-serif";
+  ctx.fillText("TURNAMEN FUTSAL KARANG TARUNA RW 03", 540, 140);
 
   // Desa Padurenan Subtitle
   ctx.fillStyle = "#a1a1aa"; // zinc-400
   ctx.font = "bold 26px system-ui, -apple-system, sans-serif";
-  ctx.fillText("DESA PADURENAN", 540, 175);
+  ctx.fillText("DESA PADURENAN", 540, 185);
 
   // Decorative Accent line below title
   ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(420, 210);
-  ctx.lineTo(660, 210);
+  ctx.moveTo(420, 220);
+  ctx.lineTo(660, 220);
   ctx.stroke();
 
   // Round & Group Info
@@ -83,7 +85,7 @@ export const downloadMatchImage = (
   ctx.fillText(
     `${match.round.toUpperCase()}  •  ${match.group_name.toUpperCase()}`,
     540,
-    245,
+    255,
   );
 
   // 4. Date & Time
@@ -110,11 +112,11 @@ export const downloadMatchImage = (
 
   ctx.fillStyle = "#e4e4e7"; // zinc-200
   ctx.font = "600 28px system-ui, -apple-system, sans-serif";
-  ctx.fillText(formatDate(match.match_date), 540, 305);
+  ctx.fillText(formatDate(match.match_date), 540, 315);
 
   ctx.fillStyle = "#a1a1aa"; // zinc-400
   ctx.font = "500 24px system-ui, -apple-system, sans-serif";
-  ctx.fillText(formatTime(match.match_date), 540, 345);
+  ctx.fillText(formatTime(match.match_date), 540, 355);
 
   // Helper to draw a team logo or fallback to beautiful initials
   const drawTeamEmblem = (
@@ -192,11 +194,110 @@ export const downloadMatchImage = (
     }
   };
 
+  const drawRosterList = (
+    ctx: CanvasRenderingContext2D,
+    teamPlayers: Player[],
+    startX: number,
+    startY: number,
+  ) => {
+    ctx.font = "600 22px system-ui, -apple-system, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+
+    const itemHeight = 38;
+    const maxVisiblePlayers = 13;
+
+    // Sort players: Goals scored first, then cards, then alphabetical
+    const sortedPlayers = [...teamPlayers].sort((a, b) => {
+      const aGoals = match.player_goals?.[String(a.id)] || 0;
+      const bGoals = match.player_goals?.[String(b.id)] || 0;
+      const aCards =
+        (match.player_yellow_cards?.[String(a.id)] || 0) +
+        (match.player_red_cards?.[String(a.id)] || 0);
+      const bCards =
+        (match.player_yellow_cards?.[String(b.id)] || 0) +
+        (match.player_red_cards?.[String(b.id)] || 0);
+
+      if (aGoals !== bGoals) return bGoals - aGoals;
+      if (aCards !== bCards) return bCards - aCards;
+      return a.name.localeCompare(b.name);
+    });
+
+    const displayList = sortedPlayers.slice(0, maxVisiblePlayers);
+
+    displayList.forEach((player, index) => {
+      const currentY = startY + index * itemHeight;
+
+      // Draw small emerald dot as bullet point
+      ctx.fillStyle = "#10b981"; // emerald-500
+      ctx.beginPath();
+      ctx.arc(startX, currentY, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw player name
+      ctx.fillStyle = "#e4e4e7"; // zinc-200
+      const playerName = player.name;
+      ctx.fillText(playerName, startX + 18, currentY);
+
+      // Position for icons (goals & cards)
+      const nameWidth = ctx.measureText(playerName).width;
+      let iconX = startX + 18 + nameWidth + 12;
+
+      // Goals scorer icon
+      const goals = match.player_goals?.[String(player.id)] || 0;
+      if (goals > 0) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(goals > 1 ? `⚽ x${goals}` : "⚽", iconX, currentY);
+        iconX += goals > 1 ? 60 : 35;
+      }
+
+      // Yellow card icon (🟨)
+      const yellow = match.player_yellow_cards?.[String(player.id)] || 0;
+      if (yellow > 0) {
+        ctx.fillStyle = "#f59e0b"; // amber-500
+        ctx.beginPath();
+        const anyCtx = ctx as any;
+        if (anyCtx.roundRect) {
+          anyCtx.roundRect(iconX, currentY - 11, 11, 17, 2);
+        } else {
+          ctx.rect(iconX, currentY - 11, 11, 17);
+        }
+        ctx.fill();
+        iconX += 18;
+      }
+
+      // Red card icon (🟥)
+      const red = match.player_red_cards?.[String(player.id)] || 0;
+      if (red > 0) {
+        ctx.fillStyle = "#ef4444"; // red-500
+        ctx.beginPath();
+        const anyCtx = ctx as any;
+        if (anyCtx.roundRect) {
+          anyCtx.roundRect(iconX, currentY - 11, 11, 17, 2);
+        } else {
+          ctx.rect(iconX, currentY - 11, 11, 17);
+        }
+        ctx.fill();
+      }
+    });
+
+    if (sortedPlayers.length > maxVisiblePlayers) {
+      const currentY = startY + maxVisiblePlayers * itemHeight;
+      ctx.fillStyle = "#71717a"; // zinc-500
+      ctx.font = "italic 18px system-ui, sans-serif";
+      ctx.fillText(
+        `+ ${sortedPlayers.length - maxVisiblePlayers} pemain lainnya...`,
+        startX,
+        currentY,
+      );
+    }
+  };
+
   const renderContent = () => {
     // Draw top left Karang Taruna logo (flanking title)
     try {
       if (ktLogo.complete && ktLogo.naturalWidth !== 0) {
-        ctx.drawImage(ktLogo, 160 - 45, 150 - 45, 90, 90);
+        ctx.drawImage(ktLogo, 160 - 45, 160 - 45, 90, 90);
       }
     } catch (e) {
       console.error("Error drawing Karang Taruna logo", e);
@@ -205,7 +306,7 @@ export const downloadMatchImage = (
     // Draw top right HUT RI logo (flanking title)
     try {
       if (hutLogo.complete && hutLogo.naturalWidth !== 0) {
-        ctx.drawImage(hutLogo, 920 - 45, 150 - 45, 90, 90);
+        ctx.drawImage(hutLogo, 920 - 45, 160 - 45, 90, 90);
       }
     } catch (e) {
       console.error("Error drawing HUT RI logo", e);
@@ -215,26 +316,28 @@ export const downloadMatchImage = (
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
+    const matchRowY = 560;
+
     if (match.status !== "scheduled") {
       // Home Score
       ctx.fillStyle = "#ffffff";
       ctx.font = "900 160px system-ui, -apple-system, sans-serif";
-      ctx.fillText(String(match.home_score ?? 0), 380, 540);
+      ctx.fillText(String(match.home_score ?? 0), 380, matchRowY);
 
       // Score divider ":"
       ctx.fillStyle = "#10b981";
       ctx.font = "bold 100px system-ui, -apple-system, sans-serif";
-      ctx.fillText(":", 540, 530);
+      ctx.fillText(":", 540, matchRowY - 10);
 
       // Away Score
       ctx.fillStyle = "#ffffff";
       ctx.font = "900 160px system-ui, -apple-system, sans-serif";
-      ctx.fillText(String(match.away_score ?? 0), 700, 540);
+      ctx.fillText(String(match.away_score ?? 0), 700, matchRowY);
     } else {
       // VS Text
       ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
       ctx.font = "900 180px system-ui, -apple-system, sans-serif";
-      ctx.fillText("VS", 540, 540);
+      ctx.fillText("VS", 540, matchRowY);
     }
 
     // 6. Team Names (drawn below emblems)
@@ -258,7 +361,7 @@ export const downloadMatchImage = (
     const badgeWidth = 320;
     const badgeHeight = 64;
     const badgeX = 540 - badgeWidth / 2;
-    const badgeY = 810;
+    const badgeY = 800;
 
     // Draw badge background
     ctx.beginPath();
@@ -266,7 +369,7 @@ export const downloadMatchImage = (
     if (anyCtx.roundRect) {
       anyCtx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 16);
     } else {
-      anyCtx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+      ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
     }
     ctx.fill();
 
@@ -275,36 +378,83 @@ export const downloadMatchImage = (
     ctx.font = "bold 24px system-ui, -apple-system, sans-serif";
     ctx.fillText(statusText, 540, badgeY + badgeHeight / 2);
 
-    // 8. Footer Branding
+    // 8. Roster Section Card
+    const boxX = 100;
+    const boxY = 890;
+    const boxWidth = 880;
+    const boxHeight = 790;
+
+    // Background panel for rosters
+    ctx.fillStyle = "rgba(24, 24, 27, 0.55)";
+    ctx.strokeStyle = "rgba(63, 63, 70, 0.6)"; // zinc-700
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    if (anyCtx.roundRect) {
+      anyCtx.roundRect(boxX, boxY, boxWidth, boxHeight, 24);
+    } else {
+      ctx.rect(boxX, boxY, boxWidth, boxHeight);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    // Header Title for rosters
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 32px system-ui, -apple-system, sans-serif";
+    ctx.fillText("DAFTAR SUSUNAN PEMAIN", 540, boxY + 50);
+
+    // Divider line below roster title
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.25)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(380, boxY + 85);
+    ctx.lineTo(700, boxY + 85);
+    ctx.stroke();
+
+    // Filter home and away team players
+    const homePlayers = players.filter((p) => p.team_id === match.home_team_id);
+    const awayPlayers = players.filter((p) => p.team_id === match.away_team_id);
+
+    // Draw Column Headers
+    ctx.font = "bold 26px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = "#34d399"; // emerald-400
+    ctx.textAlign = "left";
+    ctx.fillText(match.teams_home.name, 130, boxY + 125);
+    ctx.fillText(match.teams_away.name, 570, boxY + 125);
+
+    // Draw lists of players
+    drawRosterList(ctx, homePlayers, 130, boxY + 175);
+    drawRosterList(ctx, awayPlayers, 570, boxY + 175);
+
+    // 9. Footer Branding
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
     const footerText = "Info selengkapnya di: Bit.ly/jadwal-update-futsal-rw03";
     ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
     const textWidth = ctx.measureText(footerText).width;
-    
+
     // Box dimensions
-    const boxWidth = textWidth + 40;
-    const boxHeight = 50;
-    const boxX = 540 - boxWidth / 2;
-    const boxY = 960 - boxHeight / 2;
-    
+    const fBoxWidth = textWidth + 40;
+    const fBoxHeight = 50;
+    const fBoxX = 540 - fBoxWidth / 2;
+    const fBoxY = 1750 - fBoxHeight / 2; // y=1750
+
     // Draw white rounded box
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     const anyCtx2 = ctx as any;
     if (anyCtx2.roundRect) {
-      anyCtx2.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
+      anyCtx2.roundRect(fBoxX, fBoxY, fBoxWidth, fBoxHeight, 12);
     } else {
-      anyCtx2.rect(boxX, boxY, boxWidth, boxHeight);
+      ctx.rect(fBoxX, fBoxY, fBoxWidth, fBoxHeight);
     }
     ctx.fill();
 
     // Draw black text inside the box
     ctx.fillStyle = "#09090b"; // black/dark zinc
-    ctx.fillText(footerText, 540, 960);
+    ctx.fillText(footerText, 540, 1750);
 
-    ctx.font = "500 18px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "#3f3f46";
-
-    // 9. Output trigger (Download or Share)
+    // 10. Output trigger (Download or Share)
     const dateStr = new Date(match.match_date).toISOString().split("T")[0];
     const filename = `futsal-match-${match.teams_home.name.toLowerCase().replace(/\s+/g, "-")}-vs-${match.teams_away.name.toLowerCase().replace(/\s+/g, "-")}-${dateStr}.png`;
 
@@ -389,14 +539,14 @@ export const downloadMatchImage = (
     match.teams_home.name,
     match.teams_home.logo_url,
     220,
-    540,
+    560,
     () => {
       drawTeamEmblem(
         ctx,
         match.teams_away.name,
         match.teams_away.logo_url,
         860,
-        540,
+        560,
         () => {
           loadTopLogos(() => {
             renderContent();

@@ -96,7 +96,7 @@ ${scoreText}
 Lihat detail pertandingan dan klasemen selengkapnya di:
 ${window.location.origin}/#jadwal`;
 
-    downloadMatchImage(match, "share", text);
+    downloadMatchImage(match, players, "share", text);
   };
 
   const getTeamCards = (teamId: number) => {
@@ -271,7 +271,7 @@ ${window.location.origin}/#jadwal`;
 
           <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
             <button
-              onClick={() => downloadMatchImage(match)}
+              onClick={() => downloadMatchImage(match, players)}
               className="w-full sm:w-auto justify-center sm:justify-start px-4 py-2 sm:px-3.5 sm:py-1.5 bg-zinc-800/60 hover:bg-zinc-850 text-zinc-300 hover:text-white text-xs font-bold rounded-xl border border-zinc-800 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
               title="Download Info Pertandingan"
             >
