@@ -108,8 +108,6 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
       if (pA !== pB) {
         return pA - pB;
       }
-      // If same status:
-      // Recently finished matches first, but live and scheduled matches earliest first
       if (a.status === "finished") {
         return (
           new Date(b.match_date).getTime() - new Date(a.match_date).getTime()
@@ -120,6 +118,34 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
       );
     });
   }, [filteredMatches]);
+
+  const groupedMatches = useMemo(() => {
+    const groups: { [dateKey: string]: Match[] } = {};
+    sortedMatches.forEach((match) => {
+      const dateKey = match.match_date.split("T")[0];
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(match);
+    });
+
+    return Object.keys(groups)
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .map((dateKey) => ({
+        dateKey,
+        matches: groups[dateKey],
+      }));
+  }, [sortedMatches]);
+
+  const formatHeaderDate = (dateKey: string) => {
+    const d = new Date(dateKey);
+    return d.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   if (loading) {
     return (
@@ -147,7 +173,6 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
             Filter Jadwal & Hasil
           </span>
         </div>
-
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           {/* Status Filter */}
           <div className="w-full sm:w-44">
@@ -178,7 +203,6 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
           </div>
         </div>
       </div>
-
       {/* Fixtures Grid */}
       {sortedMatches.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-zinc-500 bg-zinc-900/30 rounded-2xl border border-zinc-850">
@@ -188,24 +212,39 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
           </span>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sortedMatches.map((match) => (
-            <MatchCard
-              key={match.id}
-              match={match}
-              players={players}
-              isAdmin={isAdmin}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onClick={() => setSelectedMatchForDetail(match)}
-            />
+        <div className="space-y-8 animate-in fade-in duration-300">
+          {groupedMatches.map(({ dateKey, matches: dayMatches }) => (
+            <div key={dateKey} className="space-y-4">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-zinc-800/80">
+                <div className="w-1.5 h-6 bg-emerald-500 rounded-full animate-pulse" />
+                <h3 className="text-sm sm:text-base font-black text-zinc-200 tracking-wide capitalize">
+                  {formatHeaderDate(dateKey)}
+                </h3>
+                <span className="text-[10px] sm:text-xs font-bold text-emerald-450 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15">
+                  {dayMatches.length} Laga
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {dayMatches.map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    players={players}
+                    isAdmin={isAdmin}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onClick={() => setSelectedMatchForDetail(match)}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {/* Match Details Modal Pop-up */}
       {selectedMatchForDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-zinc-950 border border-zinc-800 rounded-3xl w-full max-w-lg p-5 shadow-2xl relative max-h-[90vh] overflow-y-auto flex flex-col gap-5 animate-in zoom-in-95 duration-200">
             {/* Close Button */}
             <button
@@ -336,43 +375,57 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                             player.id,
                             player.team_id,
                             selectedMatchForDetail.id,
-                            matches
+                            matches,
                           );
                           const matchGoals = Number(
-                            selectedMatchForDetail.player_goals?.[String(player.id)] || 0
+                            selectedMatchForDetail.player_goals?.[
+                              String(player.id)
+                            ] || 0,
                           );
                           const matchYellow = Number(
-                            selectedMatchForDetail.player_yellow_cards?.[String(player.id)] || 0
+                            selectedMatchForDetail.player_yellow_cards?.[
+                              String(player.id)
+                            ] || 0,
                           );
                           const matchRed = Number(
-                            selectedMatchForDetail.player_red_cards?.[String(player.id)] || 0
+                            selectedMatchForDetail.player_red_cards?.[
+                              String(player.id)
+                            ] || 0,
                           );
                           return (
                             <li
                               key={player.id}
                               className="text-xs text-zinc-300 flex items-center justify-between py-1"
                             >
-                              <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 min-w-0 ${
-                                suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-200"
-                              }`}>
+                              <span
+                                className={`truncate max-w-[150px] font-medium flex items-center gap-1 min-w-0 ${
+                                  suspension.isSuspended
+                                    ? "text-zinc-650 line-through opacity-60"
+                                    : "text-zinc-200"
+                                }`}
+                              >
                                 <span className="truncate">{player.name}</span>
                                 <span className="flex gap-0.5 shrink-0">
-                                  {selectedMatchForDetail.status !== "scheduled" && matchYellow > 0 && (
-                                    <span
-                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-955 select-none"
-                                      title={`${matchYellow} Kartu Kuning`}
-                                    >
-                                      {matchYellow}
-                                    </span>
-                                  )}
-                                  {selectedMatchForDetail.status !== "scheduled" && matchRed > 0 && (
-                                    <span
-                                      className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
-                                      title={`${matchRed} Kartu Merah`}
-                                    >
-                                      {matchRed}
-                                    </span>
-                                  )}
+                                  {selectedMatchForDetail.status !==
+                                    "scheduled" &&
+                                    matchYellow > 0 && (
+                                      <span
+                                        className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-955 select-none"
+                                        title={`${matchYellow} Kartu Kuning`}
+                                      >
+                                        {matchYellow}
+                                      </span>
+                                    )}
+                                  {selectedMatchForDetail.status !==
+                                    "scheduled" &&
+                                    matchRed > 0 && (
+                                      <span
+                                        className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
+                                        title={`${matchRed} Kartu Merah`}
+                                      >
+                                        {matchRed}
+                                      </span>
+                                    )}
                                 </span>
                               </span>
                               {suspension.isSuspended ? (
@@ -380,7 +433,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                                   SANKSI
                                 </span>
                               ) : (
-                                selectedMatchForDetail.status !== "scheduled" && matchGoals > 0 && (
+                                selectedMatchForDetail.status !== "scheduled" &&
+                                matchGoals > 0 && (
                                   <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
                                     {matchGoals} Gol
                                   </span>
@@ -416,43 +470,57 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                             player.id,
                             player.team_id,
                             selectedMatchForDetail.id,
-                            matches
+                            matches,
                           );
                           const matchGoals = Number(
-                            selectedMatchForDetail.player_goals?.[String(player.id)] || 0
+                            selectedMatchForDetail.player_goals?.[
+                              String(player.id)
+                            ] || 0,
                           );
                           const matchYellow = Number(
-                            selectedMatchForDetail.player_yellow_cards?.[String(player.id)] || 0
+                            selectedMatchForDetail.player_yellow_cards?.[
+                              String(player.id)
+                            ] || 0,
                           );
                           const matchRed = Number(
-                            selectedMatchForDetail.player_red_cards?.[String(player.id)] || 0
+                            selectedMatchForDetail.player_red_cards?.[
+                              String(player.id)
+                            ] || 0,
                           );
                           return (
                             <li
                               key={player.id}
                               className="text-xs text-zinc-300 flex items-center justify-between py-1"
                             >
-                              <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 min-w-0 ${
-                                suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-200"
-                              }`}>
+                              <span
+                                className={`truncate max-w-[150px] font-medium flex items-center gap-1 min-w-0 ${
+                                  suspension.isSuspended
+                                    ? "text-zinc-650 line-through opacity-60"
+                                    : "text-zinc-200"
+                                }`}
+                              >
                                 <span className="truncate">{player.name}</span>
                                 <span className="flex gap-0.5 shrink-0">
-                                  {selectedMatchForDetail.status !== "scheduled" && matchYellow > 0 && (
-                                    <span
-                                      className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-955 select-none"
-                                      title={`${matchYellow} Kartu Kuning`}
-                                    >
-                                      {matchYellow}
-                                    </span>
-                                  )}
-                                  {selectedMatchForDetail.status !== "scheduled" && matchRed > 0 && (
-                                    <span
-                                      className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
-                                      title={`${matchRed} Kartu Merah`}
-                                    >
-                                      {matchRed}
-                                    </span>
-                                  )}
+                                  {selectedMatchForDetail.status !==
+                                    "scheduled" &&
+                                    matchYellow > 0 && (
+                                      <span
+                                        className="w-2 h-3 bg-yellow-400 border border-yellow-500/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-yellow-955 select-none"
+                                        title={`${matchYellow} Kartu Kuning`}
+                                      >
+                                        {matchYellow}
+                                      </span>
+                                    )}
+                                  {selectedMatchForDetail.status !==
+                                    "scheduled" &&
+                                    matchRed > 0 && (
+                                      <span
+                                        className="w-2 h-3 bg-red-500 border border-red-600/20 rounded-[1px] shadow-sm flex items-center justify-center text-[7px] font-black text-white select-none"
+                                        title={`${matchRed} Kartu Merah`}
+                                      >
+                                        {matchRed}
+                                      </span>
+                                    )}
                                 </span>
                               </span>
                               {suspension.isSuspended ? (
@@ -460,7 +528,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                                   SANKSI
                                 </span>
                               ) : (
-                                selectedMatchForDetail.status !== "scheduled" && matchGoals > 0 && (
+                                selectedMatchForDetail.status !== "scheduled" &&
+                                matchGoals > 0 && (
                                   <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
                                     {matchGoals} Gol
                                   </span>
