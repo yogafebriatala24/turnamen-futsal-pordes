@@ -1,6 +1,10 @@
 import { Match } from "../components/molecules/MatchCard";
 
-export const downloadMatchImage = (match: Match) => {
+export const downloadMatchImage = (
+  match: Match,
+  action: "download" | "share" = "download",
+  shareText?: string,
+) => {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
   canvas.height = 1080;
@@ -298,17 +302,63 @@ export const downloadMatchImage = (match: Match) => {
     ctx.font = "500 18px system-ui, -apple-system, sans-serif";
     ctx.fillStyle = "#3f3f46";
 
-    // 9. Download file trigger
-    try {
-      const dataUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      const dateStr = new Date(match.match_date).toISOString().split("T")[0];
-      const filename = `futsal-match-${match.teams_home.name.toLowerCase().replace(/\s+/g, "-")}-vs-${match.teams_away.name.toLowerCase().replace(/\s+/g, "-")}-${dateStr}.png`;
-      link.download = filename;
-      link.href = dataUrl;
-      link.click();
-    } catch (e) {
-      console.error("Error creating poster download link", e);
+    // 9. Output trigger (Download or Share)
+    const dateStr = new Date(match.match_date).toISOString().split("T")[0];
+    const filename = `futsal-match-${match.teams_home.name.toLowerCase().replace(/\s+/g, "-")}-vs-${match.teams_away.name.toLowerCase().replace(/\s+/g, "-")}-${dateStr}.png`;
+
+    const fallbackShareText = (text: string) => {
+      const encodedText = encodeURIComponent(text);
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+      window.open(whatsappUrl, "_blank");
+    };
+
+    if (action === "share" && shareText) {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          fallbackShareText(shareText);
+          return;
+        }
+
+        const file = new File([blob], filename, { type: "image/png" });
+
+        // If Web Share API supports file sharing, use it
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              text: shareText,
+              title: "Info Pertandingan Futsal",
+            });
+          } catch (e) {
+            console.error("Web share failed, falling back to WhatsApp link", e);
+            fallbackShareText(shareText);
+          }
+        } else {
+          // If not supported (e.g., desktop), download the image automatically
+          // and then open WhatsApp link so they can easily upload/drag-and-drop the image
+          try {
+            const dataUrl = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.download = filename;
+            link.href = dataUrl;
+            link.click();
+          } catch (err) {
+            console.error("Auto-download failed during share fallback", err);
+          }
+          fallbackShareText(shareText);
+        }
+      }, "image/png");
+    } else {
+      // Normal download trigger
+      try {
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+      } catch (e) {
+        console.error("Error creating poster download link", e);
+      }
     }
   };
 

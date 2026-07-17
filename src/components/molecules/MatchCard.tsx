@@ -96,9 +96,7 @@ ${scoreText}
 Lihat detail pertandingan dan klasemen selengkapnya di:
 ${window.location.origin}/#jadwal`;
 
-    const encodedText = encodeURIComponent(text);
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
-    window.open(whatsappUrl, "_blank");
+    downloadMatchImage(match, "share", text);
   };
 
   const getTeamCards = (teamId: number) => {
