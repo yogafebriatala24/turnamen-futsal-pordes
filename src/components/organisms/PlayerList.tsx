@@ -17,8 +17,16 @@ export const PlayerList: React.FC<PlayerListProps> = ({
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCardFilter, setSelectedCardFilter] = useState<string>("all");
 
-  // Filter players by team and search query
+  const filterCardOptions = [
+    { value: "all", label: "Semua Pemain" },
+    { value: "any", label: "Punya Kartu" },
+    { value: "yellow", label: "Punya Kartu Kuning" },
+    { value: "red", label: "Punya Kartu Merah" },
+  ];
+
+  // Filter players by team, search query, and card status
   const filteredPlayers = useMemo(() => {
     let list = players;
     if (selectedTeamId !== "all") {
@@ -28,15 +36,24 @@ export const PlayerList: React.FC<PlayerListProps> = ({
       const q = searchQuery.toLowerCase().trim();
       list = list.filter((p) => p.name.toLowerCase().includes(q));
     }
+    if (selectedCardFilter !== "all") {
+      if (selectedCardFilter === "any") {
+        list = list.filter((p) => (p.yellow_cards || 0) > 0 || (p.red_cards || 0) > 0);
+      } else if (selectedCardFilter === "yellow") {
+        list = list.filter((p) => (p.yellow_cards || 0) > 0);
+      } else if (selectedCardFilter === "red") {
+        list = list.filter((p) => (p.red_cards || 0) > 0);
+      }
+    }
     return list;
-  }, [players, selectedTeamId, searchQuery]);
+  }, [players, selectedTeamId, searchQuery, selectedCardFilter]);
 
-  // Only display teams that have matching search players (if search is active)
+  // Only display teams that have matching search/filter players (if active)
   const activeTeams = useMemo(() => {
-    if (!searchQuery.trim()) return teams;
+    if (!searchQuery.trim() && selectedCardFilter === "all") return teams;
     const matchingTeamIds = new Set(filteredPlayers.map((p) => p.team_id));
     return teams.filter((t) => matchingTeamIds.has(t.id));
-  }, [teams, filteredPlayers, searchQuery]);
+  }, [teams, filteredPlayers, searchQuery, selectedCardFilter]);
 
   if (loading) {
     return (
@@ -239,6 +256,16 @@ export const PlayerList: React.FC<PlayerListProps> = ({
                 ...teams.map((t) => ({ value: String(t.id), label: t.name })),
               ]}
               placeholder="Pilih Tim"
+            />
+          </div>
+
+          {/* Card Selector Select */}
+          <div className="w-full sm:w-56">
+            <Select
+              value={selectedCardFilter}
+              onChange={(e) => setSelectedCardFilter(e.target.value)}
+              options={filterCardOptions}
+              placeholder="Pilih Kartu"
             />
           </div>
         </div>

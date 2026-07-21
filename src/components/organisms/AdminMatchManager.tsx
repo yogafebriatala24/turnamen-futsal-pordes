@@ -52,6 +52,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
   >("Penyisihan");
   const [error, setError] = useState("");
   const [playerGoals, setPlayerGoals] = useState<Record<number, number>>({});
+  const [playerOwnGoals, setPlayerOwnGoals] = useState<Record<number, number>>({});
   const [playerYellowCards, setPlayerYellowCards] = useState<Record<number, number>>({});
   const [playerRedCards, setPlayerRedCards] = useState<Record<number, number>>({});
 
@@ -59,6 +60,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
   useEffect(() => {
     if (showForm) {
       const newGoals: Record<number, number> = {};
+      const newOwnGoals: Record<number, number> = {};
       const newYellow: Record<number, number> = {};
       const newRed: Record<number, number> = {};
       
@@ -76,6 +78,10 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
             savedGoals[playerIdStr] !== undefined
               ? Number(savedGoals[playerIdStr])
               : 0;
+          newOwnGoals[player.id] =
+            savedGoals[`own_${playerIdStr}`] !== undefined
+              ? Number(savedGoals[`own_${playerIdStr}`])
+              : 0;
           newYellow[player.id] =
             savedYellow[playerIdStr] !== undefined
               ? Number(savedYellow[playerIdStr])
@@ -87,10 +93,12 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         }
       });
       setPlayerGoals(newGoals);
+      setPlayerOwnGoals(newOwnGoals);
       setPlayerYellowCards(newYellow);
       setPlayerRedCards(newRed);
     } else {
       setPlayerGoals({});
+      setPlayerOwnGoals({});
       setPlayerYellowCards({});
       setPlayerRedCards({});
     }
@@ -115,6 +123,13 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
 
   const adjustGoal = (playerId: number, delta: number) => {
     setPlayerGoals((prev) => ({
+      ...prev,
+      [playerId]: Math.max(0, (prev[playerId] || 0) + delta),
+    }));
+  };
+
+  const adjustOwnGoal = (playerId: number, delta: number) => {
+    setPlayerOwnGoals((prev) => ({
       ...prev,
       [playerId]: Math.max(0, (prev[playerId] || 0) + delta),
     }));
@@ -204,6 +219,9 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
       
       Object.entries(playerGoals).forEach(([pIdStr, val]) => {
         if (val > 0) matchPlayerGoals[pIdStr] = val;
+      });
+      Object.entries(playerOwnGoals).forEach(([pIdStr, val]) => {
+        if (val > 0) matchPlayerGoals[`own_${pIdStr}`] = val;
       });
       Object.entries(playerYellowCards).forEach(([pIdStr, val]) => {
         if (val > 0) matchPlayerYellow[pIdStr] = val;
@@ -362,20 +380,21 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
         ]));
 
         const revertUpdates = uniquePlayerIds.map(async (pIdStr) => {
-        const playerId = Number(pIdStr);
-        const originalPlayer = players.find((p) => p.id === playerId);
-        if (originalPlayer) {
-          const matchG = Number(matchPlayerGoals[pIdStr] || 0);
-          const matchY = Number(matchPlayerYellow[pIdStr] || 0);
-          const matchR = Number(matchPlayerRed[pIdStr] || 0);
-          
-          await updatePlayer(playerId, {
-            goals: Math.max(0, originalPlayer.goals - matchG),
-            yellow_cards: Math.max(0, (originalPlayer.yellow_cards || 0) - matchY),
-            red_cards: Math.max(0, (originalPlayer.red_cards || 0) - matchR),
-          });
-        }
-      });
+          if (pIdStr.startsWith("own_")) return;
+          const playerId = Number(pIdStr);
+          const originalPlayer = players.find((p) => p.id === playerId);
+          if (originalPlayer) {
+            const matchG = Number(matchPlayerGoals[pIdStr] || 0);
+            const matchY = Number(matchPlayerYellow[pIdStr] || 0);
+            const matchR = Number(matchPlayerRed[pIdStr] || 0);
+            
+            await updatePlayer(playerId, {
+              goals: Math.max(0, originalPlayer.goals - matchG),
+              yellow_cards: Math.max(0, (originalPlayer.yellow_cards || 0) - matchY),
+              red_cards: Math.max(0, (originalPlayer.red_cards || 0) - matchR),
+            });
+          }
+        });
       await Promise.all(revertUpdates);
 
       // If a finished match is deleted, any served suspensions in this match are now unserved:
@@ -605,19 +624,19 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                             return (
                               <div
                                 key={player.id}
-                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2.5 border-b border-zinc-900/60 last:border-0 gap-2 sm:gap-3"
+                                className="flex flex-col py-2.5 border-b border-zinc-900/60 last:border-0 gap-2"
                               >
                                 <span className={`text-xs font-semibold flex items-center gap-1.5 min-w-0 ${
                                   suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-355"
                                 }`} title={player.name}>
-                                  <span className="truncate max-w-[200px]">{player.name}</span>
+                                  <span className="truncate">{player.name}</span>
                                   {suspension.isSuspended && (
                                     <span className="text-[7px] font-black text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
                                       🚫 SANKSI
                                     </span>
                                   )}
                                 </span>
-                                <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:items-center sm:justify-end sm:gap-4 sm:w-auto shrink-0 bg-zinc-955/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0 mt-1.5 sm:mt-0">
+                                <div className="grid grid-cols-4 gap-2 w-full sm:flex sm:items-center sm:justify-start sm:gap-4 sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
                                   {/* Goals Input */}
                                   <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
                                     <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-zinc-500 font-extrabold uppercase select-none tracking-wider text-center">Gol</span>
@@ -637,6 +656,34 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                         type="button"
                                         disabled={suspension.isSuspended}
                                         onClick={() => adjustGoal(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Own Goal Input */}
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-rose-500 font-extrabold uppercase select-none tracking-wider text-center gap-0.5">
+                                      OG
+                                    </span>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustOwnGoal(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerOwnGoals[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustOwnGoal(player.id, 1)}
                                         className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
                                       >
                                         +
@@ -666,7 +713,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                         type="button"
                                         disabled={suspension.isSuspended}
                                         onClick={() => adjustYellowCard(player.id, 1)}
-                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-450 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-455 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
                                       >
                                         +
                                       </button>
@@ -735,19 +782,19 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                             return (
                               <div
                                 key={player.id}
-                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2.5 border-b border-zinc-900/60 last:border-0 gap-2 sm:gap-3"
+                                className="flex flex-col py-2.5 border-b border-zinc-900/60 last:border-0 gap-2"
                               >
                                 <span className={`text-xs font-semibold flex items-center gap-1.5 min-w-0 ${
                                   suspension.isSuspended ? "text-zinc-650 line-through opacity-60" : "text-zinc-355"
                                 }`} title={player.name}>
-                                  <span className="truncate max-w-[200px]">{player.name}</span>
+                                  <span className="truncate">{player.name}</span>
                                   {suspension.isSuspended && (
                                     <span className="text-[7px] font-black text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20 shrink-0">
                                       🚫 SANKSI
                                     </span>
                                   )}
                                 </span>
-                                <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:items-center sm:justify-end sm:gap-4 sm:w-auto shrink-0 bg-zinc-950/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0 mt-1.5 sm:mt-0">
+                                <div className="grid grid-cols-4 gap-2 w-full sm:flex sm:items-center sm:justify-start sm:gap-4 sm:w-auto shrink-0 bg-zinc-955/40 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-zinc-850 sm:border-0">
                                   {/* Goals Input */}
                                   <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
                                     <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-zinc-500 font-extrabold uppercase select-none tracking-wider text-center">Gol</span>
@@ -767,6 +814,34 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                         type="button"
                                         disabled={suspension.isSuspended}
                                         onClick={() => adjustGoal(player.id, 1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Own Goal Input */}
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-zinc-900/30 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-zinc-850 sm:border-0 w-full sm:w-auto">
+                                    <span className="h-4 flex items-center justify-center text-[8px] sm:text-[10px] text-rose-500 font-extrabold uppercase select-none tracking-wider text-center gap-0.5">
+                                      OG
+                                    </span>
+                                    <div className="flex items-center justify-center gap-1.5 w-full">
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustOwnGoal(player.id, -1)}
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-4 text-center text-xs font-bold text-zinc-200">
+                                        {playerOwnGoals[player.id] || 0}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={suspension.isSuspended}
+                                        onClick={() => adjustOwnGoal(player.id, 1)}
                                         className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
                                       >
                                         +
@@ -796,7 +871,7 @@ export const AdminMatchManager: React.FC<AdminMatchManagerProps> = ({
                                         type="button"
                                         disabled={suspension.isSuspended}
                                         onClick={() => adjustYellowCard(player.id, 1)}
-                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-405 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+                                        className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-450 hover:text-white hover:bg-zinc-750 active:scale-95 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
                                       >
                                         +
                                       </button>

@@ -131,7 +131,26 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
     });
 
     return Object.keys(groups)
-      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .sort((a, b) => {
+        const aHasActive = groups[a].some(
+          (m) => m.status === "scheduled" || m.status === "ongoing",
+        );
+        const bHasActive = groups[b].some(
+          (m) => m.status === "scheduled" || m.status === "ongoing",
+        );
+
+        // Put groups containing active matches (scheduled or ongoing) at the top
+        if (aHasActive && !bHasActive) return -1;
+        if (!aHasActive && bHasActive) return 1;
+
+        // If both groups contain active matches, sort chronologically ascending (earliest first)
+        if (aHasActive && bHasActive) {
+          return new Date(a).getTime() - new Date(b).getTime();
+        }
+
+        // If both groups contain only finished matches, sort reverse-chronologically (newest first)
+        return new Date(b).getTime() - new Date(a).getTime();
+      })
       .map((dateKey) => ({
         dateKey,
         matches: groups[dateKey],
@@ -394,6 +413,11 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                               String(player.id)
                             ] || 0,
                           );
+                          const matchOwnGoals = Number(
+                            selectedMatchForDetail.player_goals?.[
+                              `own_${player.id}`
+                            ] || 0,
+                          );
                           const matchYellow = Number(
                             selectedMatchForDetail.player_yellow_cards?.[
                               String(player.id)
@@ -446,10 +470,19 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                                 </span>
                               ) : (
                                 selectedMatchForDetail.status !== "scheduled" &&
-                                matchGoals > 0 && (
-                                  <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
-                                    {matchGoals} Gol
-                                  </span>
+                                (matchGoals > 0 || matchOwnGoals > 0) && (
+                                  <div className="flex gap-1">
+                                    {matchGoals > 0 && (
+                                      <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                                        {matchGoals} Gol
+                                      </span>
+                                    )}
+                                    {matchOwnGoals > 0 && (
+                                      <span className="text-[8px] font-bold text-rose-450 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10" title="Gol Bunuh Diri">
+                                        {matchOwnGoals} GBD
+                                      </span>
+                                    )}
+                                  </div>
                                 )
                               )}
                             </li>
@@ -489,6 +522,11 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                               String(player.id)
                             ] || 0,
                           );
+                          const matchOwnGoals = Number(
+                            selectedMatchForDetail.player_goals?.[
+                              `own_${player.id}`
+                            ] || 0,
+                          );
                           const matchYellow = Number(
                             selectedMatchForDetail.player_yellow_cards?.[
                               String(player.id)
@@ -541,10 +579,19 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({
                                 </span>
                               ) : (
                                 selectedMatchForDetail.status !== "scheduled" &&
-                                matchGoals > 0 && (
-                                  <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
-                                    {matchGoals} Gol
-                                  </span>
+                                (matchGoals > 0 || matchOwnGoals > 0) && (
+                                  <div className="flex gap-1">
+                                    {matchGoals > 0 && (
+                                      <span className="text-[8px] font-bold text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                                        {matchGoals} Gol
+                                      </span>
+                                    )}
+                                    {matchOwnGoals > 0 && (
+                                      <span className="text-[8px] font-bold text-rose-450 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10" title="Gol Bunuh Diri">
+                                        {matchOwnGoals} GBD
+                                      </span>
+                                    )}
+                                  </div>
                                 )
                               )}
                             </li>

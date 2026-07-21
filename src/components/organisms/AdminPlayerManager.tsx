@@ -34,6 +34,7 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
   // Search and Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTeamId, setSelectedTeamId] = useState("all");
+  const [selectedCardFilter, setSelectedCardFilter] = useState("all");
 
   const filterTeamOptions = useMemo(() => {
     return [
@@ -42,15 +43,27 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
     ];
   }, [teams]);
 
+  const filterCardOptions = [
+    { value: "all", label: "Semua Pemain" },
+    { value: "any", label: "Punya Kartu" },
+    { value: "yellow", label: "Punya Kartu Kuning" },
+    { value: "red", label: "Punya Kartu Merah" },
+  ];
+
   const filteredPlayers = useMemo(() => {
     return players.filter((player) => {
       const matchesName = player.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTeam =
         selectedTeamId === "all" ||
         String(player.team_id) === selectedTeamId;
-      return matchesName && matchesTeam;
+      const matchesCard =
+        selectedCardFilter === "all" ||
+        (selectedCardFilter === "any" && ((player.yellow_cards || 0) > 0 || (player.red_cards || 0) > 0)) ||
+        (selectedCardFilter === "yellow" && (player.yellow_cards || 0) > 0) ||
+        (selectedCardFilter === "red" && (player.red_cards || 0) > 0);
+      return matchesName && matchesTeam && matchesCard;
     });
-  }, [players, searchQuery, selectedTeamId]);
+  }, [players, searchQuery, selectedTeamId, selectedCardFilter]);
 
   const resetForm = () => {
     setName("");
@@ -315,7 +328,7 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
       )}
 
       {/* Search & Filter Panel */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-zinc-900/40 p-4 border border-zinc-800 rounded-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-zinc-900/40 p-4 border border-zinc-800 rounded-2xl">
         <div className="sm:col-span-2">
           <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider block mb-1.5">
             Cari Nama Pemain
@@ -336,6 +349,17 @@ export const AdminPlayerManager: React.FC<AdminPlayerManagerProps> = ({
             onChange={(e) => setSelectedTeamId(e.target.value)}
             options={filterTeamOptions}
             placeholder="Pilih Tim"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider block mb-1.5">
+            Filter Kartu
+          </label>
+          <Select
+            value={selectedCardFilter}
+            onChange={(e) => setSelectedCardFilter(e.target.value)}
+            options={filterCardOptions}
+            placeholder="Pilih Kartu"
           />
         </div>
       </div>
