@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { StandingRow } from "../../utils/standings";
-import { Trophy, Shield } from "lucide-react";
+import { Trophy, Shield, Download } from "lucide-react";
+import { downloadGroupStandingsImage } from "../../utils/imageGenerator";
 
 interface StandingsTableProps {
   standings: Record<string, StandingRow[]>;
@@ -102,13 +103,23 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
             className="bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/80 overflow-hidden shadow-xl"
           >
             {/* Group Title Header */}
-            <div className="bg-zinc-900/90 px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase">
-                {groupName}
-              </h3>
-              <span className="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/15">
-                Klasemen Grup
-              </span>
+            <div className="bg-zinc-900/90 px-5 py-4 border-b border-zinc-800 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase truncate">
+                  {groupName}
+                </h3>
+                <span className="text-xs text-emerald-450 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/15 shrink-0">
+                  Klasemen Grup
+                </span>
+              </div>
+              <button
+                onClick={() => downloadGroupStandingsImage(groupName, rows)}
+                className="shrink-0 px-2.5 py-1 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white text-[10px] sm:text-xs font-bold rounded-lg border border-zinc-750 transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                title="Download Poster Klasemen"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Download Poster</span>
+              </button>
             </div>
 
             {/* Standings Table container (responsive horizontal scrolling on tiny screens) */}

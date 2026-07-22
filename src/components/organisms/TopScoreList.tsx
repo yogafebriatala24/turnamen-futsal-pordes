@@ -1,6 +1,7 @@
 import React from "react";
 import { Player } from "../../services/db";
-import { Trophy } from "lucide-react";
+import { Trophy, Download } from "lucide-react";
+import { downloadTopScoreImage } from "../../utils/imageGenerator";
 
 interface TopScoreListProps {
   players: Player[];
@@ -78,51 +79,71 @@ export const TopScoreList: React.FC<TopScoreListProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      {displayPlayers.map((player, index) => {
-        const rank = index + 1;
-        const isTopThree = rank <= 3;
+    <div className="flex flex-col gap-4">
+      {/* Download Header for Top Score list */}
+      <div className="flex items-center justify-between bg-zinc-900/90 px-5 py-4 border border-zinc-800/80 rounded-2xl gap-4">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
+          <h3 className="text-xs sm:text-sm font-bold text-zinc-200 tracking-wider uppercase truncate">
+            Top Score Sementara
+          </h3>
+        </div>
+        <button
+          onClick={() => downloadTopScoreImage(players)}
+          className="shrink-0 px-2.5 py-1 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white text-[10px] sm:text-xs font-bold rounded-lg border border-zinc-750 transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+          title="Download Poster Top Score"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span className="hidden xs:inline">Download Poster</span>
+        </button>
+      </div>
 
-        return (
-          <div
-            key={player.id}
-            className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 ${
-              isTopThree
-                ? "bg-gradient-to-r from-zinc-900/70 to-zinc-900/40 border-zinc-800/90 shadow-md"
-                : "bg-zinc-900/35 border-zinc-850/60"
-            } hover:border-zinc-700/60`}
-          >
-            {/* Left side: Rank, Name, Team */}
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="flex-shrink-0">{getRankBadge(rank)}</div>
-              <div className="min-w-0">
-                <h4 className="font-bold text-zinc-100 text-sm tracking-wide truncate">
-                  {player.name}
-                </h4>
-                <p className="text-xs text-zinc-500 font-medium truncate mt-0.5">
-                  {player.teams?.name || "Tanpa Tim"}
-                </p>
+      <div className="flex flex-col gap-3">
+        {displayPlayers.map((player, index) => {
+          const rank = index + 1;
+          const isTopThree = rank <= 3;
+
+          return (
+            <div
+              key={player.id}
+              className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 ${
+                isTopThree
+                  ? "bg-gradient-to-r from-zinc-900/70 to-zinc-900/40 border-zinc-800/90 shadow-md"
+                  : "bg-zinc-900/35 border-zinc-850/60"
+              } hover:border-zinc-700/60`}
+            >
+              {/* Left side: Rank, Name, Team */}
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="flex-shrink-0">{getRankBadge(rank)}</div>
+                <div className="min-w-0">
+                  <h4 className="font-bold text-zinc-100 text-sm tracking-wide truncate">
+                    {player.name}
+                  </h4>
+                  <p className="text-xs text-zinc-500 font-medium truncate mt-0.5">
+                    {player.teams?.name || "Tanpa Tim"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right side: Goals Badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-zinc-500 tracking-wide uppercase mr-1">
+                  Gol
+                </span>
+                <span
+                  className={`text-xl font-black px-3.5 py-1 rounded-xl flex items-center justify-center ${
+                    isTopThree
+                      ? "bg-emerald-600/10 text-emerald-400 border border-emerald-500/20"
+                      : "bg-zinc-850 text-zinc-300"
+                  }`}
+                >
+                  {player.goals}
+                </span>
               </div>
             </div>
-
-            {/* Right side: Goals Badge */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-zinc-500 tracking-wide uppercase mr-1">
-                Gol
-              </span>
-              <span
-                className={`text-xl font-black px-3.5 py-1 rounded-xl flex items-center justify-center ${
-                  isTopThree
-                    ? "bg-emerald-600/10 text-emerald-400 border border-emerald-500/20"
-                    : "bg-zinc-850 text-zinc-300"
-                }`}
-              >
-                {player.goals}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
