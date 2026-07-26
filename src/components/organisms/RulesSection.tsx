@@ -52,7 +52,7 @@ export const RulesSection: React.FC = () => {
         },
         {
           title: "Sistem & Kualifikasi Fase Grup",
-          desc: "Pertandingan fase grup menggunakan sistem poin (menang 3, seri 1, kalah 0). Jika terdapat tim dengan poin yang sama, penentuan posisi klasemen akan dihitung berdasarkan selisih gol. Dari babak ini, hanya akan diambil 2 tim terbaik (Juara Grup dan Runner-up) dari masing-masing grup untuk lolos ke babak selanjutnya.",
+          desc: "Pertandingan fase grup menggunakan sistem poin (menang 3, seri 1, kalah 0). Jika terdapat tim dengan poin yang sama, penentuan posisi klasemen akan dihitung berdasarkan selisih gol. Dari babak ini, hanya akan diambil 4 tim terbaik dari masing-masing grup untuk lolos ke babak selanjutnya.",
           icon: Trophy,
         },
         {

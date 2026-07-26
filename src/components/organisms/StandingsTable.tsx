@@ -141,25 +141,25 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                 </thead>
                 <tbody className="divide-y divide-zinc-850/40 text-sm text-zinc-300">
                   {rows.map((row, index) => {
-                    const isTopTwo = index < 2; // Qualify highlight
+                    const isTopFour = index < 4; // Qualify highlight
                     return (
                       <tr
                         key={row.teamId}
                         className={`transition-colors duration-150 ${
-                          isTopTwo
+                          isTopFour
                             ? "bg-emerald-950/20 hover:bg-emerald-950/30 text-emerald-100"
                             : "hover:bg-zinc-800/25"
                         }`}
                       >
                         {/* Position */}
                         <td className={`py-3.5 px-4 text-center font-bold sticky left-0 z-10 ${
-                          isTopTwo 
+                          isTopFour 
                             ? "bg-[#0c2417] text-emerald-350" 
-                            : "bg-zinc-900 text-zinc-500"
+                            : "bg-zinc-900 text-zinc-550"
                         }`}>
                           <span
                             className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-md text-[10px] sm:text-xs ${
-                              isTopTwo
+                              isTopFour
                                 ? "bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
                                 : "text-zinc-550"
                             }`}
@@ -170,7 +170,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
 
                         {/* Team Name */}
                         <td className={`py-2 px-2 sm:py-3.5 sm:px-4 font-semibold sticky left-[36px] sm:left-[48px] z-10 border-r border-zinc-800/60 text-xs sm:text-sm ${
-                          isTopTwo 
+                          isTopFour 
                             ? "bg-[#0c2417] text-emerald-300" 
                             : "bg-zinc-900 text-zinc-200"
                         }`}>
@@ -230,7 +230,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
 
                         {/* Points */}
                         <td className={`py-2 px-2 sm:py-3.5 sm:px-4 text-center font-extrabold text-xs sm:text-sm sticky right-0 z-10 border-l border-zinc-800/60 ${
-                          isTopTwo 
+                          isTopFour 
                             ? "bg-[#0c2417] text-emerald-300" 
                             : "bg-zinc-900 text-white"
                         }`}>

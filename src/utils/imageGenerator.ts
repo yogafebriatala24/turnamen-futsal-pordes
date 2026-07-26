@@ -1214,10 +1214,10 @@ export const downloadGroupStandingsImage = (groupName: string, rows: StandingRow
     rows.forEach((row, idx) => {
       const rowY = boxY + headerHeight + idx * rowHeight;
       const centerY = rowY + rowHeight / 2;
-      const isTopTwo = idx < 2;
+      const isTopFour = idx < 4;
 
-      // Draw background highlight for top 2 (qualification zone)
-      if (isTopTwo) {
+      // Draw background highlight for top 4 (qualification zone)
+      if (isTopFour) {
         ctx.fillStyle = "rgba(16, 185, 129, 0.08)";
         ctx.fillRect(boxX + 4, rowY + 2, boxWidth - 8, rowHeight - 4);
       }
@@ -1234,7 +1234,7 @@ export const downloadGroupStandingsImage = (groupName: string, rows: StandingRow
 
       // POS
       ctx.textAlign = "center";
-      if (isTopTwo) {
+      if (isTopFour) {
         ctx.fillStyle = "#34d399"; // emerald-450
         ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
       } else {
@@ -1249,7 +1249,7 @@ export const downloadGroupStandingsImage = (groupName: string, rows: StandingRow
 
       // Team Name
       ctx.textAlign = "left";
-      ctx.fillStyle = isTopTwo ? "#34d399" : "#ffffff";
+      ctx.fillStyle = isTopFour ? "#34d399" : "#ffffff";
       ctx.font = "bold 20px system-ui, -apple-system, sans-serif";
       ctx.fillText(row.name, teamColX + emblemRadius * 2 + 10, centerY, 235); // Max width 235
 
@@ -1286,7 +1286,7 @@ export const downloadGroupStandingsImage = (groupName: string, rows: StandingRow
       }
 
       // Points
-      ctx.fillStyle = isTopTwo ? "#34d399" : "#ffffff";
+      ctx.fillStyle = isTopFour ? "#34d399" : "#ffffff";
       ctx.font = "900 22px system-ui, -apple-system, sans-serif";
       ctx.fillText(String(row.points), ptsColX, centerY);
     });
