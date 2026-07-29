@@ -7,14 +7,15 @@ import { TopScoreList } from "../components/organisms/TopScoreList";
 import { ScheduleList } from "../components/organisms/ScheduleList";
 import { PlayerList } from "../components/organisms/PlayerList";
 import { RulesSection } from "../components/organisms/RulesSection";
+import { KnockoutBracket } from "../components/organisms/KnockoutBracket";
 import { getTeams, getPlayers, getMatches, Player } from "../services/db";
 import type { Match } from "../components/molecules/MatchCard";
 import { Team, calculateStandings, StandingRow } from "../utils/standings";
-import { Trophy, Calendar, Award, RefreshCw, Users, BookOpen } from "lucide-react";
+import { Trophy, Calendar, Award, RefreshCw, Users, BookOpen, GitFork } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
-    "standings" | "topscore" | "schedule" | "players" | "rules"
+    "standings" | "topscore" | "schedule" | "players" | "rules" | "knockout"
   >("standings");
 
   // Synchronize activeTab state with URL hash
@@ -29,17 +30,18 @@ export default function Home() {
         setActiveTab("players");
       } else if (hash === "#peraturan" || hash === "#Peraturan") {
         setActiveTab("rules");
+      } else if (hash === "#fasegugur") {
+        setActiveTab("knockout");
       } else {
         setActiveTab("standings");
       }
     };
 
-    // Run with a small delay to ensure Next.js router has completed hydration
-    const timer = setTimeout(handleHashChange, 100);
+    // Run immediately on client side
+    handleHashChange();
 
     window.addEventListener("hashchange", handleHashChange);
     return () => {
-      clearTimeout(timer);
       window.removeEventListener("hashchange", handleHashChange);
     };
   }, []);
@@ -74,8 +76,9 @@ export default function Home() {
   }, []);
 
   const handleTabClick = (
-    tabId: "standings" | "topscore" | "schedule" | "players" | "rules",
+    tabId: "standings" | "topscore" | "schedule" | "players" | "rules" | "knockout",
   ) => {
+    setActiveTab(tabId);
     if (tabId === "standings") {
       // Clear hash cleanly
       window.history.pushState(
@@ -83,7 +86,6 @@ export default function Home() {
         document.title,
         window.location.pathname + window.location.search,
       );
-      setActiveTab("standings");
     } else {
       const tab = tabs.find((t) => t.id === tabId);
       if (tab && "hash" in tab) {
@@ -108,6 +110,13 @@ export default function Home() {
       label: "Klasemen",
       mobileLabel: "Klasemen",
       icon: Trophy,
+    },
+    {
+      id: "knockout",
+      label: "Fase Gugur",
+      mobileLabel: "Gugur",
+      hash: "fasegugur",
+      icon: GitFork,
     },
     {
       id: "schedule",
@@ -257,6 +266,10 @@ export default function Home() {
         <div className="mt-4 min-h-100">
           {activeTab === "standings" && (
             <StandingsTable standings={standings} loading={loading} />
+          )}
+
+          {activeTab === "knockout" && (
+            <KnockoutBracket standings={standings} matches={matches} loading={loading} />
           )}
 
           {activeTab === "schedule" && (

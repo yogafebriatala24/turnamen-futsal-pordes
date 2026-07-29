@@ -2,7 +2,8 @@ import React, { useState, useMemo } from "react";
 import { Player } from "../../services/db";
 import { Team } from "../../utils/standings";
 import { Select } from "../atoms/Select";
-import { Users, Shield, Search, X } from "lucide-react";
+import { Users, Shield, Search, X, Download } from "lucide-react";
+import { downloadPlayersCardsImage } from "../../utils/imageGenerator";
 
 interface PlayerListProps {
   players: Player[];
@@ -217,11 +218,21 @@ export const PlayerList: React.FC<PlayerListProps> = ({
     <div className="space-y-6">
       {/* Team Selection & Search Bar */}
       <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between relative z-30">
-        <div className="flex items-center gap-2 self-start md:self-center">
-          <Users className="w-4 h-4 text-emerald-500" />
-          <span className="text-sm font-bold text-zinc-350">
-            Daftar Pemain Berdasarkan Tim
-          </span>
+        <div className="flex items-center justify-between w-full md:w-auto gap-4 self-start md:self-center">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-emerald-500" />
+            <span className="text-sm font-bold text-zinc-350">
+              Daftar Pemain
+            </span>
+          </div>
+          <button
+            onClick={() => downloadPlayersCardsImage(players)}
+            className="shrink-0 px-2.5 py-1.5 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 hover:text-white text-[10px] sm:text-xs font-bold rounded-lg border border-zinc-750 transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+            title="Download Poster Pelanggaran Kartu"
+          >
+            <Download className="w-3.5 h-3.5 text-yellow-500" />
+            <span>Poster Kartu</span>
+          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">

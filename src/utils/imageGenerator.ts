@@ -1679,3 +1679,1152 @@ export const downloadTopScoreImage = (players: Player[]) => {
   hutLogo.src = "/hutri.png";
 };
 
+export const downloadPlayersCardsImage = (players: Player[]) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const ktLogo = new Image();
+  const hutLogo = new Image();
+
+  // Draw Background Gradient
+  const grad = ctx.createRadialGradient(540, 960, 100, 540, 960, 1000);
+  grad.addColorStop(0, "#27272a"); // zinc-800 dark/greyish
+  grad.addColorStop(0.6, "#09090b"); // zinc-950
+  grad.addColorStop(1, "#030712"); // slate-950
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  // Draw Futsal Pitch lines
+  ctx.strokeStyle = "rgba(239, 68, 68, 0.06)"; // subtle red lines for card/disciplinary theme
+  ctx.lineWidth = 4;
+  ctx.strokeRect(60, 60, 960, 1800);
+  ctx.beginPath();
+  ctx.moveTo(60, 960);
+  ctx.lineTo(1020, 960);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(540, 960, 180, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = "rgba(239, 68, 68, 0.1)";
+  ctx.beginPath();
+  ctx.arc(540, 960, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Penalty areas
+  ctx.beginPath();
+  ctx.arc(540, 60, 200, 0, Math.PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(540, 1860, 200, Math.PI, 0);
+  ctx.stroke();
+
+  // Header Title
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 27px system-ui, -apple-system, sans-serif";
+  ctx.fillText("TURNAMEN FUTSAL KARANG TARUNA RW 03", 540, 140);
+
+  // Subtitle
+  ctx.fillStyle = "#a1a1aa";
+  ctx.font = "bold 26px system-ui, -apple-system, sans-serif";
+  ctx.fillText("DESA PADURENAN", 540, 185);
+
+  ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(420, 220);
+  ctx.lineTo(660, 220);
+  ctx.stroke();
+
+  // Highlighted Title Badge (red/orange pill)
+  ctx.fillStyle = "#dc2626"; // red-600
+  ctx.font = "900 28px system-ui, -apple-system, sans-serif";
+  const badgeText = "PEROLEHAN KARTU & SANKSI";
+  const textWidth = ctx.measureText(badgeText).width;
+
+  const badgeWidth = textWidth + 40;
+  const badgeHeight = 54;
+  const badgeX = 540 - badgeWidth / 2;
+  const badgeY = 250;
+
+  ctx.beginPath();
+  const anyCtx = ctx as any;
+  if (anyCtx.roundRect) {
+    anyCtx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 12);
+  } else {
+    ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+  }
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 24px system-ui, -apple-system, sans-serif";
+  ctx.fillText(badgeText, 540, badgeY + badgeHeight / 2);
+
+  // Format date
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  // Draw Section Title
+  ctx.fillStyle = "#e4e4e7"; // zinc-200
+  ctx.font = "800 32px system-ui, -apple-system, sans-serif";
+  ctx.fillText("DAFTAR AKUMULASI KARTU PEMAIN", 540, 345);
+
+  ctx.fillStyle = "#a1a1aa"; // zinc-400
+  ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+  ctx.fillText(`Data Per: ${formattedDate}`, 540, 382);
+
+  ctx.strokeStyle = "rgba(239, 68, 68, 0.25)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(380, 410);
+  ctx.lineTo(700, 410);
+  ctx.stroke();
+
+  const renderContent = () => {
+    // Draw top logos
+    try {
+      if (ktLogo.complete && ktLogo.naturalWidth !== 0) {
+        ctx.drawImage(ktLogo, 160 - 45, 160 - 45, 90, 90);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    try {
+      if (hutLogo.naturalWidth && hutLogo.naturalWidth !== 0) {
+        ctx.drawImage(hutLogo, 920 - 45, 160 - 45, 90, 90);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Filter players with cards and sort them: red desc, then yellow desc
+    const displayPlayers = players
+      .filter((p) => (p.yellow_cards || 0) > 0 || (p.red_cards || 0) > 0)
+      .sort((a, b) => {
+        if (b.red_cards !== a.red_cards) return (b.red_cards || 0) - (a.red_cards || 0);
+        return (b.yellow_cards || 0) - (a.yellow_cards || 0);
+      })
+      .slice(0, 9);
+
+    if (displayPlayers.length === 0) {
+      // Draw empty message if no players have cards
+      ctx.fillStyle = "rgba(24, 24, 27, 0.65)";
+      ctx.strokeStyle = "rgba(63, 63, 70, 0.7)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (anyCtx.roundRect) {
+        anyCtx.roundRect(120, 480, 840, 200, 20);
+      } else {
+        ctx.rect(120, 480, 840, 200);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#71717a";
+      ctx.font = "bold 24px system-ui, -apple-system, sans-serif";
+      ctx.fillText("Belum ada pemain yang menerima kartu.", 540, 580);
+    } else {
+      const boxX = 120;
+      const boxWidth = 840;
+      const boxY = 480;
+      const rowHeight = 130;
+      const boxHeight = displayPlayers.length * rowHeight;
+
+      // Draw main container panel
+      ctx.fillStyle = "rgba(24, 24, 27, 0.65)";
+      ctx.strokeStyle = "rgba(63, 63, 70, 0.7)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (anyCtx.roundRect) {
+        anyCtx.roundRect(boxX, boxY, boxWidth, boxHeight, 20);
+      } else {
+        ctx.rect(boxX, boxY, boxWidth, boxHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      displayPlayers.forEach((player, idx) => {
+        const rowY = boxY + idx * rowHeight;
+        const centerY = rowY + rowHeight / 2;
+        const rank = idx + 1;
+
+        // Draw separator line
+        if (idx < displayPlayers.length - 1) {
+          ctx.strokeStyle = "rgba(63, 63, 70, 0.3)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(boxX + 20, rowY + rowHeight);
+          ctx.lineTo(boxX + boxWidth - 20, rowY + rowHeight);
+          ctx.stroke();
+        }
+
+        // Draw Rank
+        const rankX = boxX + 50;
+        ctx.fillStyle = "#71717a";
+        ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(String(rank), rankX, centerY);
+
+        // Player Name & Team Name
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+
+        // Player Name
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 26px system-ui, -apple-system, sans-serif";
+        ctx.fillText(player.name, boxX + 110, centerY - 16, 420);
+
+        // Team Name
+        ctx.fillStyle = "#71717a";
+        ctx.font = "600 20px system-ui, -apple-system, sans-serif";
+        ctx.fillText(player.teams?.name || "Tanpa Tim", boxX + 110, centerY + 24, 420);
+
+        // Draw Cards on the right
+        const cardsX = boxX + boxWidth - 240;
+
+        // Yellow Card
+        if (player.yellow_cards > 0) {
+          ctx.fillStyle = "#facc15"; // yellow-400
+          const cardW = 22;
+          const cardH = 30;
+          const cardX = cardsX;
+          const cardY = centerY - cardH / 2;
+          ctx.beginPath();
+          if (anyCtx.roundRect) {
+            anyCtx.roundRect(cardX, cardY, cardW, cardH, 4);
+          } else {
+            ctx.rect(cardX, cardY, cardW, cardH);
+          }
+          ctx.fill();
+
+          ctx.textAlign = "left";
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "900 28px system-ui, -apple-system, sans-serif";
+          ctx.fillText(String(player.yellow_cards), cardX + cardW + 12, centerY);
+        }
+
+        // Red Card
+        if (player.red_cards > 0) {
+          ctx.fillStyle = "#ef4444"; // red-500
+          const cardW = 22;
+          const cardH = 30;
+          const cardX = cardsX + 110;
+          const cardY = centerY - cardH / 2;
+          ctx.beginPath();
+          if (anyCtx.roundRect) {
+            anyCtx.roundRect(cardX, cardY, cardW, cardH, 4);
+          } else {
+            ctx.rect(cardX, cardY, cardW, cardH);
+          }
+          ctx.fill();
+
+          ctx.textAlign = "left";
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "900 28px system-ui, -apple-system, sans-serif";
+          ctx.fillText(String(player.red_cards), cardX + cardW + 12, centerY);
+        }
+      });
+    }
+
+    // Legend below the card
+    const legendY = 1680;
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#71717a";
+    ctx.font = "600 18px system-ui, -apple-system, sans-serif";
+    ctx.fillText("🟨 : Kartu Kuning      •      🟥 : Kartu Merah", 540, legendY);
+
+    // Footer branding
+    const footerText = "Info selengkapnya di: Bit.ly/jadwal-update-futsal-rw03";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+    const textW = ctx.measureText(footerText).width;
+
+    const fBoxWidth = textW + 40;
+    const fBoxHeight = 50;
+    const fBoxX = 540 - fBoxWidth / 2;
+    const fBoxY = 1770 - fBoxHeight / 2;
+
+    ctx.beginPath();
+    if (anyCtx.roundRect) {
+      anyCtx.roundRect(fBoxX, fBoxY, fBoxWidth, fBoxHeight, 12);
+    } else {
+      ctx.rect(fBoxX, fBoxY, fBoxWidth, fBoxHeight);
+    }
+    ctx.fill();
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#09090b";
+    ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+    ctx.fillText(footerText, 540, 1770);
+
+    // Download trigger
+    try {
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      const filename = "akumulasi-kartu.png";
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  let ktLoaded = false;
+  let hutLoaded = false;
+  const onTopLogosLoaded = () => {
+    if (ktLoaded && hutLoaded) {
+      renderContent();
+    }
+  };
+
+  ktLogo.onload = () => {
+    ktLoaded = true;
+    onTopLogosLoaded();
+  };
+  ktLogo.onerror = () => {
+    ktLoaded = true;
+    onTopLogosLoaded();
+  };
+  ktLogo.src = "/android-chrome-512x512.png";
+
+  hutLogo.onload = () => {
+    hutLoaded = true;
+    onTopLogosLoaded();
+  };
+  hutLogo.onerror = () => {
+    hutLoaded = true;
+    onTopLogosLoaded();
+  };
+  hutLogo.src = "/hutri.png";
+};
+
+export const downloadKnockoutBracketImage = (
+  qfMatches: any[],
+  sfMatches: any[],
+  finalMatch: any,
+  thirdMatch: any
+) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const ktLogo = new Image();
+  const hutLogo = new Image();
+
+  const drawMiniEmblem = (
+    ctx: CanvasRenderingContext2D,
+    name: string,
+    logoUrl: string | undefined,
+    loadedImages: Record<string, HTMLImageElement>,
+    x: number,
+    y: number,
+    radius: number = 14
+  ) => {
+    const drawInitials = () => {
+      ctx.fillStyle = "#18181b"; // zinc-900
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.4)"; // emerald-500/40
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      const initials = name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
+
+      ctx.fillStyle = "#a1a1aa"; // zinc-400
+      ctx.font = "bold 10px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(initials, x, y);
+    };
+
+    if (logoUrl && loadedImages[logoUrl]) {
+      const img = loadedImages[logoUrl];
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.clip();
+
+      ctx.fillStyle = "#18181b";
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+      ctx.drawImage(img, x - radius + 1, y - radius + 1, radius * 2 - 2, radius * 2 - 2);
+      ctx.restore();
+
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      drawInitials();
+    }
+  };
+
+  const renderContent = (loadedImages: Record<string, HTMLImageElement>) => {
+    const anyCtx = ctx as any;
+    // Draw Background Gradient
+    const grad = ctx.createRadialGradient(540, 960, 100, 540, 960, 1000);
+    grad.addColorStop(0, "#022c22"); // dark emerald-950
+    grad.addColorStop(0.6, "#09090b"); // zinc-950
+    grad.addColorStop(1, "#030712"); // slate-950
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // Draw Futsal Pitch lines
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.08)";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(60, 60, 960, 1800);
+    ctx.beginPath();
+    ctx.moveTo(60, 960);
+    ctx.lineTo(1020, 960);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(540, 960, 180, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Draw logos
+    try {
+      if (ktLogo.complete && ktLogo.naturalWidth !== 0) {
+        ctx.drawImage(ktLogo, 160 - 45, 160 - 45, 90, 90);
+      }
+    } catch (e) { console.error(e); }
+    try {
+      if (hutLogo.naturalWidth && hutLogo.naturalWidth !== 0) {
+        ctx.drawImage(hutLogo, 920 - 45, 160 - 45, 90, 90);
+      }
+    } catch (e) { console.error(e); }
+
+    // Header Title
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 27px system-ui, -apple-system, sans-serif";
+    ctx.fillText("TURNAMEN FUTSAL KARANG TARUNA RW 03", 540, 140);
+
+    // Subtitle
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = "bold 26px system-ui, -apple-system, sans-serif";
+    ctx.fillText("DESA PADURENAN", 540, 185);
+
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(420, 220);
+    ctx.lineTo(660, 220);
+    ctx.stroke();
+
+    // Section Title Badge
+    ctx.fillStyle = "#10b981"; // emerald-500
+    ctx.font = "900 28px system-ui, -apple-system, sans-serif";
+    const groupBadgeText = "BAGAN FASE GUGUR";
+    const textWidth = ctx.measureText(groupBadgeText).width;
+    const badgeWidth = textWidth + 40;
+    const badgeHeight = 54;
+    const badgeX = 540 - badgeWidth / 2;
+    const badgeY = 250;
+
+    ctx.beginPath();
+    if (anyCtx.roundRect) {
+      anyCtx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 12);
+    } else {
+      ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px system-ui, -apple-system, sans-serif";
+    ctx.fillText(groupBadgeText, 540, badgeY + badgeHeight / 2);
+
+    // Format date and time
+    const today = new Date();
+    const formattedDateTime = today.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }) + " - " + today.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " WIB";
+
+    // Draw Section Date/Time description
+    ctx.fillStyle = "#a1a1aa"; // zinc-400
+    ctx.font = "bold 20px system-ui, -apple-system, sans-serif";
+    ctx.fillText(`Data Per: ${formattedDateTime}`, 540, 335);
+
+    // Render Connector Lines first so cards sit on top of them
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.5)"; // emerald-500/50
+    ctx.lineWidth = 2.5;
+
+    // Line QF1/QF2 -> SF1
+    ctx.beginPath();
+    ctx.moveTo(290, 505); ctx.lineTo(360, 505);
+    ctx.moveTo(290, 805); ctx.lineTo(360, 805);
+    ctx.lineTo(360, 505); // Vertical connector
+    ctx.moveTo(360, 655); ctx.lineTo(430, 655);
+    ctx.stroke();
+
+    // Line QF3/QF4 -> SF2
+    ctx.beginPath();
+    ctx.moveTo(290, 1205); ctx.lineTo(360, 1205);
+    ctx.moveTo(290, 1505); ctx.lineTo(360, 1505);
+    ctx.lineTo(360, 1205); // Vertical connector
+    ctx.moveTo(360, 1355); ctx.lineTo(430, 1355);
+    ctx.stroke();
+
+    // Line SF1/SF2 -> Grand Final
+    ctx.beginPath();
+    ctx.moveTo(650, 655); ctx.lineTo(720, 655);
+    ctx.moveTo(650, 1355); ctx.lineTo(720, 1355);
+    ctx.lineTo(720, 655); // Vertical connector
+    ctx.moveTo(720, 1005); ctx.lineTo(790, 1005);
+    ctx.stroke();
+
+    // Card drawing helper
+    const drawCard = (match: any, x: number, y: number, title: string, isFinalStyle = false) => {
+      const w = 220;
+      const h = 110;
+      const r = 12;
+
+      // Container
+      ctx.fillStyle = "#18181b"; // zinc-900
+      ctx.strokeStyle = isFinalStyle ? "rgba(16, 185, 129, 0.5)" : "rgba(63, 63, 70, 0.6)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      if (anyCtx.roundRect) {
+        anyCtx.roundRect(x, y, w, h, r);
+      } else {
+        ctx.rect(x, y, w, h);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Title bar background
+      ctx.fillStyle = isFinalStyle ? "rgba(16, 185, 129, 0.12)" : "rgba(39, 39, 42, 0.6)";
+      ctx.beginPath();
+      if (anyCtx.roundRect) {
+        anyCtx.roundRect(x, y, w, 26, [r, r, 0, 0]);
+      } else {
+        ctx.rect(x, y, w, 26);
+      }
+      ctx.fill();
+
+      // Title text
+      ctx.fillStyle = isFinalStyle ? "#34d399" : "#a1a1aa";
+      ctx.font = "bold 9px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(title.toUpperCase(), x + w / 2, y + 13);
+
+      // Home Team row
+      const drawTeamRow = (team: any, score: number | null, centerY: number) => {
+        // Emblem
+        drawMiniEmblem(ctx, team.name, team.logoUrl, loadedImages, x + 20, centerY, 13);
+
+        // Name
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        if (team.placeholder) {
+          ctx.fillStyle = "#52525b"; // zinc-600
+          ctx.font = "italic 11px system-ui, sans-serif";
+        } else {
+          ctx.fillStyle = "#e4e4e7"; // zinc-200
+          ctx.font = "bold 12px system-ui, sans-serif";
+        }
+        ctx.fillText(team.name.substring(0, 16), x + 42, centerY);
+
+        // Score (if exists)
+        if (score !== null) {
+          ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
+          ctx.fillRect(x + w - 30, centerY - 14, 24, 28);
+          ctx.fillStyle = "#10b981";
+          ctx.font = "black 12px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(score.toString(), x + w - 18, centerY);
+        }
+      };
+
+      const dbm = match.dbMatch;
+      const homeScore = dbm?.home_score !== undefined ? dbm.home_score : null;
+      const awayScore = dbm?.away_score !== undefined ? dbm.away_score : null;
+
+      drawTeamRow(match.teamHome, homeScore, y + 46);
+      
+      // Divider line
+      ctx.strokeStyle = "rgba(63, 63, 70, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(x + 8, y + 68);
+      ctx.lineTo(x + w - 8, y + 68);
+      ctx.stroke();
+
+      drawTeamRow(match.teamAway, awayScore, y + 88);
+    };
+
+    // Draw QF Matches
+    drawCard(qfMatches[0], 70, 450, "Perempat Final 1");
+    drawCard(qfMatches[1], 70, 750, "Perempat Final 2");
+    drawCard(qfMatches[2], 70, 1150, "Perempat Final 3");
+    drawCard(qfMatches[3], 70, 1450, "Perempat Final 4");
+
+    // Draw SF Matches
+    drawCard(sfMatches[0], 430, 600, "Semifinal 1");
+    drawCard(sfMatches[1], 430, 1300, "Semifinal 2");
+
+    // Draw Grand Final
+    drawCard(finalMatch, 790, 950, "🏆 GRAND FINAL 🏆", true);
+
+    // Draw 3rd Place Playoff
+    drawCard(thirdMatch, 790, 1650, "🥉 PEREBUTAN JUARA 3 🥉");
+
+    // Footer branding
+    const footerText = "Info selengkapnya di: Bit.ly/jadwal-update-futsal-rw03";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+    const textW = ctx.measureText(footerText).width;
+
+    const fBoxWidth = textW + 40;
+    const fBoxHeight = 50;
+    const fBoxX = 540 - fBoxWidth / 2;
+    const fBoxY = 1800;
+
+    ctx.beginPath();
+    if (anyCtx.roundRect) {
+      anyCtx.roundRect(fBoxX, fBoxY, fBoxWidth, fBoxHeight, 12);
+    } else {
+      ctx.rect(fBoxX, fBoxY, fBoxWidth, fBoxHeight);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = "#09090b";
+    ctx.textAlign = "center";
+    ctx.fillText(footerText, 540, fBoxY + fBoxHeight / 2);
+
+    // Trigger download
+    try {
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = "bagan-fase-gugur.png";
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Preload logos
+  const logoUrls = ["/android-chrome-512x512.png", "/hutri.png"];
+  const addMatchLogos = (m: any) => {
+    if (m.teamHome.logoUrl) logoUrls.push(m.teamHome.logoUrl);
+    if (m.teamAway.logoUrl) logoUrls.push(m.teamAway.logoUrl);
+  };
+  qfMatches.forEach(addMatchLogos);
+  sfMatches.forEach(addMatchLogos);
+  addMatchLogos(finalMatch);
+  addMatchLogos(thirdMatch);
+
+  const loadAllImages = (
+    urls: string[],
+    callback: (loadedImages: Record<string, HTMLImageElement>) => void,
+  ) => {
+    const loaded: Record<string, HTMLImageElement> = {};
+    let loadedCount = 0;
+    const uniqueUrls = Array.from(new Set(urls.filter(Boolean)));
+    if (uniqueUrls.length === 0) {
+      callback({});
+      return;
+    }
+
+    uniqueUrls.forEach((url) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        loaded[url] = img;
+        loadedCount++;
+        if (loadedCount === uniqueUrls.length) {
+          callback(loaded);
+        }
+      };
+      img.onerror = () => {
+        loadedCount++;
+        if (loadedCount === uniqueUrls.length) {
+          callback(loaded);
+        }
+      };
+      img.src = url;
+    });
+  };
+
+  let ktLoaded = false;
+  let hutLoaded = false;
+  const onTopLogosLoaded = () => {
+    if (ktLoaded && hutLoaded) {
+      loadAllImages(logoUrls, (loadedImages) => {
+        renderContent(loadedImages);
+      });
+    }
+  };
+
+  ktLogo.onload = () => {
+    ktLoaded = true;
+    onTopLogosLoaded();
+  };
+  ktLogo.onerror = () => {
+    ktLoaded = true;
+    onTopLogosLoaded();
+  };
+  ktLogo.src = "/android-chrome-512x512.png";
+
+  hutLogo.onload = () => {
+    hutLoaded = true;
+    onTopLogosLoaded();
+  };
+  hutLogo.onerror = () => {
+    hutLoaded = true;
+    onTopLogosLoaded();
+  };
+  hutLogo.src = "/hutri.png";
+};
+
+export const downloadQualifiedTeamsImage = (
+  groupA: StandingRow[],
+  groupB: StandingRow[]
+) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const ktLogo = new Image();
+  const hutLogo = new Image();
+
+  const isGuaranteedToQualify = (group: StandingRow[], teamId: number | null) => {
+    if (teamId === null) return false;
+    const team = group.find((t) => t.teamId === teamId);
+    if (!team) return false;
+
+    const otherMaxPoints = group
+      .filter((t) => t.teamId !== teamId)
+      .map((t) => {
+        const remainingMatches = Math.max(0, 5 - t.played);
+        return t.points + remainingMatches * 3;
+      });
+
+    otherMaxPoints.sort((a, b) => b - a);
+    const m4 = otherMaxPoints[3] ?? 0;
+    return team.points > m4;
+  };
+
+  const drawMiniEmblem = (
+    ctx: CanvasRenderingContext2D,
+    name: string,
+    logoUrl: string | undefined,
+    loadedImages: Record<string, HTMLImageElement>,
+    x: number,
+    y: number,
+    radius: number = 24
+  ) => {
+    const drawInitials = () => {
+      ctx.fillStyle = "#18181b"; // zinc-900
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.4)"; // emerald-500/40
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      const initials = name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
+
+      ctx.fillStyle = "#a1a1aa"; // zinc-400
+      ctx.font = "bold 16px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(initials, x, y);
+    };
+
+    if (logoUrl && loadedImages[logoUrl]) {
+      const img = loadedImages[logoUrl];
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.clip();
+
+      ctx.fillStyle = "#18181b";
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+      ctx.drawImage(img, x - radius + 2, y - radius + 2, radius * 2 - 4, radius * 2 - 4);
+      ctx.restore();
+
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      drawInitials();
+    }
+  };
+
+  const renderContent = (loadedImages: Record<string, HTMLImageElement>) => {
+    const anyCtx = ctx as any;
+    // Draw Background Gradient
+    const grad = ctx.createRadialGradient(540, 960, 100, 540, 960, 1000);
+    grad.addColorStop(0, "#022c22"); // dark emerald-950
+    grad.addColorStop(0.6, "#09090b"); // zinc-950
+    grad.addColorStop(1, "#030712"); // slate-950
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // Draw Futsal Pitch lines
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.08)";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(60, 60, 960, 1800);
+    ctx.beginPath();
+    ctx.moveTo(60, 960);
+    ctx.lineTo(1020, 960);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(540, 960, 180, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Draw logos
+    try {
+      if (ktLogo.complete && ktLogo.naturalWidth !== 0) {
+        ctx.drawImage(ktLogo, 160 - 45, 160 - 45, 90, 90);
+      }
+    } catch (e) { console.error(e); }
+    try {
+      if (hutLogo.naturalWidth && hutLogo.naturalWidth !== 0) {
+        ctx.drawImage(hutLogo, 920 - 45, 160 - 45, 90, 90);
+      }
+    } catch (e) { console.error(e); }
+
+    // Header Title
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 27px system-ui, -apple-system, sans-serif";
+    ctx.fillText("TURNAMEN FUTSAL KARANG TARUNA RW 03", 540, 140);
+
+    // Subtitle
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = "bold 26px system-ui, -apple-system, sans-serif";
+    ctx.fillText("DESA PADURENAN", 540, 185);
+
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(420, 220);
+    ctx.lineTo(660, 220);
+    ctx.stroke();
+
+    // Section Title Badge
+    ctx.fillStyle = "#10b981"; // emerald-500
+    ctx.font = "900 28px system-ui, -apple-system, sans-serif";
+    const groupBadgeText = "DAFTAR TIM LOLOS FASE GUGUR";
+    const textWidth = ctx.measureText(groupBadgeText).width;
+    const badgeWidth = textWidth + 40;
+    const badgeHeight = 54;
+    const badgeX = 540 - badgeWidth / 2;
+    const badgeY = 250;
+
+    ctx.beginPath();
+    if (anyCtx.roundRect) {
+      anyCtx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 12);
+    } else {
+      ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px system-ui, -apple-system, sans-serif";
+    ctx.fillText(groupBadgeText, 540, badgeY + badgeHeight / 2);
+
+    // Format date and time
+    const today = new Date();
+    const formattedDateTime = today.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }) + " - " + today.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " WIB";
+
+    // Draw Section Date/Time description
+    ctx.fillStyle = "#a1a1aa"; // zinc-400
+    ctx.font = "bold 20px system-ui, -apple-system, sans-serif";
+    ctx.fillText(`Data Per: ${formattedDateTime}`, 540, 325);
+
+    // Draw Group Panels (Stacked)
+    const drawGroupPanel = (groupName: string, groupData: StandingRow[], topY: number) => {
+      const panelX = 100;
+      const panelW = 880;
+      const panelH = 550;
+      
+      // Panel Box
+      ctx.fillStyle = "rgba(24, 24, 27, 0.65)";
+      ctx.strokeStyle = "rgba(63, 63, 70, 0.7)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (anyCtx.roundRect) {
+        anyCtx.roundRect(panelX, topY, panelW, panelH, 20);
+      } else {
+        ctx.rect(panelX, topY, panelW, panelH);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Title
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#10b981";
+      ctx.font = "bold 24px system-ui, sans-serif";
+      ctx.fillText(groupName.toUpperCase(), panelX + 30, topY + 45);
+
+      // Divider below title
+      ctx.strokeStyle = "rgba(63, 63, 70, 0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(panelX + 20, topY + 80);
+      ctx.lineTo(panelX + panelW - 20, topY + 80);
+      ctx.stroke();
+
+      // 4 Slots
+      for (let i = 0; i < 4; i++) {
+        const team = groupData[i];
+        const guaranteed = team ? isGuaranteedToQualify(groupData, team.teamId) : false;
+        const rowY = topY + 90 + i * 110;
+        const centerY = rowY + 50;
+
+        // Rank circle
+        ctx.fillStyle = "#27272a"; // zinc-800
+        ctx.beginPath();
+        ctx.arc(panelX + 50, centerY, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#a1a1aa";
+        ctx.font = "bold 16px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText((i + 1).toString(), panelX + 50, centerY);
+
+        if (team && guaranteed) {
+          // Team emblem
+          drawMiniEmblem(ctx, team.name, team.logoUrl, loadedImages, panelX + 110, centerY, 24);
+
+          // Team name
+          ctx.textAlign = "left";
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 20px system-ui, sans-serif";
+          ctx.fillText(team.name, panelX + 160, centerY);
+
+          // Pts
+          ctx.fillStyle = "#a1a1aa";
+          ctx.font = "bold 16px system-ui, sans-serif";
+          ctx.fillText(`${team.points} Pts`, panelX + 550, centerY);
+
+          // Status badge: "LOLOS" (green background pill)
+          const badgeText = "LOLOS";
+          ctx.font = "bold 14px system-ui, sans-serif";
+          const tw = ctx.measureText(badgeText).width;
+          const bw = tw + 24;
+          const bh = 38;
+          ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
+          ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          if (anyCtx.roundRect) {
+            anyCtx.roundRect(panelX + panelW - bw - 30, centerY - bh / 2, bw, bh, 8);
+          } else {
+            ctx.rect(panelX + panelW - bw - 30, centerY - bh / 2, bw, bh);
+          }
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#34d399";
+          ctx.textAlign = "center";
+          ctx.fillText(badgeText, panelX + panelW - bw / 2 - 30, centerY);
+        } else {
+          // Placeholder team: "?" emblem
+          ctx.fillStyle = "#18181b";
+          ctx.strokeStyle = "rgba(63, 63, 70, 0.4)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(panelX + 110, centerY, 24, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#3f3f46";
+          ctx.font = "bold 20px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("?", panelX + 110, centerY);
+
+          // Placeholder text
+          ctx.textAlign = "left";
+          ctx.fillStyle = "#52525b";
+          ctx.font = "italic 18px system-ui, sans-serif";
+          ctx.fillText(`Peringkat ${i + 1} (${groupName})`, panelX + 160, centerY);
+
+          // Status badge: "MENUNGGU" (zinc background pill)
+          const badgeText = "MENUNGGU";
+          ctx.font = "bold 14px system-ui, sans-serif";
+          const tw = ctx.measureText(badgeText).width;
+          const bw = tw + 24;
+          const bh = 38;
+          ctx.fillStyle = "rgba(63, 63, 70, 0.15)";
+          ctx.strokeStyle = "rgba(63, 63, 70, 0.4)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          if (anyCtx.roundRect) {
+            anyCtx.roundRect(panelX + panelW - bw - 30, centerY - bh / 2, bw, bh, 8);
+          } else {
+            ctx.rect(panelX + panelW - bw - 30, centerY - bh / 2, bw, bh);
+          }
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#71717a";
+          ctx.textAlign = "center";
+          ctx.fillText(badgeText, panelX + panelW - bw / 2 - 30, centerY);
+        }
+
+        // Draw light row separator (except last row)
+        if (i < 3) {
+          ctx.strokeStyle = "rgba(63, 63, 70, 0.25)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(panelX + 20, rowY + 110);
+          ctx.lineTo(panelX + panelW - 20, rowY + 110);
+          ctx.stroke();
+        }
+      }
+    };
+
+    drawGroupPanel("Grup A", groupA, 360);
+    drawGroupPanel("Grup B", groupB, 950);
+
+    // Footer branding
+    const footerText = "Info selengkapnya di: Bit.ly/jadwal-update-futsal-rw03";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+    const textW = ctx.measureText(footerText).width;
+
+    const fBoxWidth = textW + 40;
+    const fBoxHeight = 50;
+    const fBoxX = 540 - fBoxWidth / 2;
+    const fBoxY = 1580;
+
+    ctx.beginPath();
+    if (anyCtx.roundRect) {
+      anyCtx.roundRect(fBoxX, fBoxY, fBoxWidth, fBoxHeight, 12);
+    } else {
+      ctx.rect(fBoxX, fBoxY, fBoxWidth, fBoxHeight);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = "#09090b";
+    ctx.textAlign = "center";
+    ctx.fillText(footerText, 540, fBoxY + fBoxHeight / 2);
+
+    // Trigger download
+    try {
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = "daftar-tim-lolos.png";
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Preload logos
+  const logoUrls = ["/android-chrome-512x512.png", "/hutri.png"];
+  groupA.slice(0, 4).forEach((row) => {
+    if (row.logoUrl) logoUrls.push(row.logoUrl);
+  });
+  groupB.slice(0, 4).forEach((row) => {
+    if (row.logoUrl) logoUrls.push(row.logoUrl);
+  });
+
+  const loadAllImages = (
+    urls: string[],
+    callback: (loadedImages: Record<string, HTMLImageElement>) => void,
+  ) => {
+    const loaded: Record<string, HTMLImageElement> = {};
+    let loadedCount = 0;
+    const uniqueUrls = Array.from(new Set(urls.filter(Boolean)));
+    if (uniqueUrls.length === 0) {
+      callback({});
+      return;
+    }
+
+    uniqueUrls.forEach((url) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        loaded[url] = img;
+        loadedCount++;
+        if (loadedCount === uniqueUrls.length) {
+          callback(loaded);
+        }
+      };
+      img.onerror = () => {
+        loadedCount++;
+        if (loadedCount === uniqueUrls.length) {
+          callback(loaded);
+        }
+      };
+      img.src = url;
+    });
+  };
+
+  let ktLoaded = false;
+  let hutLoaded = false;
+  const onTopLogosLoaded = () => {
+    if (ktLoaded && hutLoaded) {
+      loadAllImages(logoUrls, (loadedImages) => {
+        renderContent(loadedImages);
+      });
+    }
+  };
+
+  ktLogo.onload = () => {
+    ktLoaded = true;
+    onTopLogosLoaded();
+  };
+  ktLogo.onerror = () => {
+    ktLoaded = true;
+    onTopLogosLoaded();
+  };
+  ktLogo.src = "/android-chrome-512x512.png";
+
+  hutLogo.onload = () => {
+    hutLoaded = true;
+    onTopLogosLoaded();
+  };
+  hutLogo.onerror = () => {
+    hutLoaded = true;
+    onTopLogosLoaded();
+  };
+  hutLogo.src = "/hutri.png";
+};
+

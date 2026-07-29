@@ -17,3 +17,32 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* Custom Responsive Bracket Container Styles */
+.bracket-container-desktop {
+  display: none !important;
+}
+.bracket-container-desktop-flex {
+  display: none !important;
+}
+.bracket-container-mobile {
+  display: block !important;
+}
+.bracket-container-mobile-flex {
+  display: flex !important;
+}
+
+@media (min-width: 640px) {
+  .bracket-container-desktop {
+    display: grid !important;
+  }
+  .bracket-container-desktop-flex {
+    display: flex !important;
+  }
+  .bracket-container-mobile {
+    display: none !important;
+  }
+  .bracket-container-mobile-flex {
+    display: none !important;
+  }
+}
